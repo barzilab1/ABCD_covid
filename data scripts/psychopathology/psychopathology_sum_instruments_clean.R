@@ -33,11 +33,8 @@ summary(mhp02[mhp02$eventname == "1_year_follow_up_y_arm_1" ,])
 
 ################### Youth Summary Scores BPM and POA ################### 
 yssbpm01 = load_instrument("abcd_yssbpm01", psychopathology_files_path)
-yssbpm01 = yssbpm01[,grepl("^(src|interv|event|sex)|_(r|t|mean|sum)$", colnames(yssbpm01))]
+yssbpm01 = yssbpm01[,grepl("^(src|interv|event|sex)|poa_y_ss_sum$", colnames(yssbpm01))]
+yssbpm01= yssbpm01[!is.na(yssbpm01$poa_y_ss_sum),]
 
-
-psychopathology_sum_scores = merge(mhy,mhp02)
-
-
-write.csv(file = "outputs/psychopathology_sum_scores.csv",x = psychopathology_sum_scores, row.names = F, na = "")
+write.csv(file = "outputs/psychopathology_sum_scores.csv",x = yssbpm01, row.names = F, na = "")
 

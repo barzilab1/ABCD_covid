@@ -7,10 +7,14 @@ source("utility_fun.R")
 ssphp01 = load_instrument("abcd_ssphp01", physicalhealth_files_path)
 
 #select variables 
-ssphp01 = ssphp01[,!grepl("_(nm|nt|dims|da|swtd|does|shy|total)$",colnames(ssphp01))]
+# ssphp01 = ssphp01[,!grepl("_(nm|nt|dims|da|swtd|does|shy|total)$",colnames(ssphp01))]
+# ssphp01$male_p_late_or_post_puberty = ifelse( ssphp01$pds_p_ss_male_category_2 >= 4 ,1,0)
+# ssphp01$female_p_late_or_post_puberty = ifelse( ssphp01$pds_p_ss_female_category_2 >= 4 ,1, 0)
 
-ssphp01$male_p_late_or_post_puberty = ifelse( ssphp01$pds_p_ss_male_category_2 >= 4 ,1,0)
-ssphp01$female_p_late_or_post_puberty = ifelse( ssphp01$pds_p_ss_female_category_2 >= 4 ,1, 0)
+ssphp01 = ssphp01[,grepl("src|event|sex|inter|sds_p_ss_total$",colnames(ssphp01))]
+
+write.csv(file = "outputs/physical_health.csv",x = ssphp01, row.names = F, na = "")
+
 
 ########## ABCD Sum Scores Physical Health Youth ###########
 

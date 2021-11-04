@@ -23,24 +23,22 @@ demographics_set[, sex_br := (sex == "F")*1]
 
 ########### age
 #interview age will be used instead of age
-demographics_set[, age := as.numeric(as.character(interview_age))]
+demographics_set[, age := interview_age]
 
 ########### gender
-demographics_set[,gender := as.numeric(as.character(demo_gender_id_v2_l))]
+demographics_set[,gender := demo_gender_id_v2_l]
 demographics_set[(gender %in%  c(777,999)) ,gender := NA] 
 demographics_set[, gender:= gender-1]
 demographics_set[, demo_gender_id_v2_l:= NULL]
 
 ########### parents education
 demographics_set[(demo_prnt_ed_v2_l %in%  c(777,999)), demo_prnt_ed_v2_l:= NA]
-#fix bug when reading demo_prtnr_ed_v2_l
-demographics_set[,demo_prtnr_ed_v2_l := as.numeric(as.character(demo_prtnr_ed_v2_l))]
 demographics_set[(demo_prtnr_ed_v2_l %in%  c(777,999)), demo_prtnr_ed_v2_l:= NA]
 
-demographics_set[, parents_avg_edu:= (as.numeric(as.character(demo_prnt_ed_v2_l)) + demo_prtnr_ed_v2_l)/2]
+demographics_set[, parents_avg_edu:= (demo_prnt_ed_v2_l + demo_prtnr_ed_v2_l)/2]
 #in case of edu is missing in one of the parents, it will be the edu the of other parent 
-demographics_set[is.na(parents_avg_edu), parents_avg_edu:= as.numeric(as.character(demo_prnt_ed_v2_l))]
-demographics_set[is.na(parents_avg_edu), parents_avg_edu:= as.numeric(as.character(demo_prtnr_ed_v2_l))]
+demographics_set[is.na(parents_avg_edu), parents_avg_edu:= demo_prnt_ed_v2_l]
+demographics_set[is.na(parents_avg_edu), parents_avg_edu:= demo_prtnr_ed_v2_l]
 
 ########### family income 
 demographics_set[,household_income:= demo_comb_income_v2_l]
@@ -72,7 +70,6 @@ for(name in economic_hardship_names){
   set(demographics_set,i = which(demographics_set[[name]] == 777), j= name, value = NA)
 }
 
-demographics_set[ , (economic_hardship_names) := lapply(.SD, function(x){as.numeric(as.character(x))}), .SDcols = economic_hardship_names]
 
 library("psych")
 xcor <- polychoric(as.data.frame(demographics_set)[ ,economic_hardship_names ])$rho

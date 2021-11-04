@@ -54,10 +54,10 @@ yrb$physical_activity2_y = as.numeric(as.character(yrb$physical_activity2_y)) - 
 
 
 
-physicalhealth_1year = merge(ppdms,ypdms)
-write.csv(file = "outputs/physicalhealth_1year.csv",x = physicalhealth_1year, row.names = F, na = "")
-
-physicalhealth_baseline = merge(mx01,yrb)
-write.csv(file = "outputs/physicalhealth_baseline.csv",x = physicalhealth_baseline, row.names = F, na = "")
-
+# physicalhealth_1year = merge(ppdms,ypdms)
+# write.csv(file = "outputs/physicalhealth_1year.csv",x = physicalhealth_1year, row.names = F, na = "")
+# 
+# physicalhealth_baseline = merge(mx01,yrb)
+# write.csv(file = "outputs/physicalhealth_baseline.csv",x = physicalhealth_baseline, row.names = F, na = "")
+# 
 

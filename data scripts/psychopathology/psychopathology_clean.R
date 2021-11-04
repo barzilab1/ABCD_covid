@@ -50,6 +50,8 @@ bpm[bpm == "777" | bpm == "999"] = NA
 ytbpai = load_instrument("abcd_ytbpai01", psychopathology_files_path)
 ytbpai[ytbpai == "777" | ytbpai == "999"] = NA
 
+write.csv(file = "outputs/psychopathology.csv",x = ytbpai, row.names = F, na = "")
+
 
 ########## Parent Sleep Disturbance Scale for Children (SDS) ###########
 sds01 = load_instrument("abcd_sds01",psychopathology_files_path)
@@ -68,7 +70,5 @@ lpksad$kbi_p_c_bully_l[lpksad$kbi_p_c_bully_l == 2] = 0
 
 
 
-psychopathology = merge(pps01,pgbi01)
 
-write.csv(file = "outputs/psychopathology.csv",x = psychopathology, row.names = F, na = "")
 
