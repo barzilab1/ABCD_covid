@@ -39,6 +39,7 @@ demographics_set[(demo_ethn_v2 %in% c(777,999)), ethnicity_hisp:= NA]
 demographics_set = demographics_set[, demo_ethn_v2 := NULL]
 
 
+
 ########### child race
 #"refuse to answer" and "dont know" will be 0
 
@@ -76,6 +77,13 @@ demographics_set[ race_mixed > 1, race_mixed:= 1]
 demographics_set[, table(race_mixed, useNA = "if")]
 
 demographics_set[, grep("^demo_race_a_p___",colnames(demographics_set), value = T) := NULL]
+
+
+
+demographics_set[,non_hispanic_black := 0]
+demographics_set[ethnicity_hisp == 0 & race_black == 1, non_hispanic_black := 1]
+demographics_set[,non_hispanic_white := 0]
+demographics_set[ethnicity_hisp == 0 & race_white == 1, non_hispanic_white := 1]
 
 
 ########### child's country of birth 
@@ -144,6 +152,7 @@ demographics_set[demo_roster_v2 %in% c(60,77), demo_roster_v2:= NA]
 
 selected_features = c("src_subject_id", "eventname", "sex",
                       "race_white", "race_black", "race_aian", "race_nhpi", "race_asian", "race_other","race_mixed" ,"ethnicity_hisp",
+                      "non_hispanic_black", "non_hispanic_white",
                       "born_in_usa", "household_income", "age", "sex_br", "gender",
                       "parents_avg_edu", "separated_or_divorced","parents_married" ,"demo_years_us_v2",
                       economic_hardship_names, "demo_fam_poverty")

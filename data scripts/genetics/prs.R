@@ -1,4 +1,5 @@
- 
+library(plyr)
+
 source("config.R")
 
 
@@ -14,7 +15,7 @@ load_psr <- function(input_list) {
     new_col_name = regmatches(file_name, gregexpr("(?<=(AFR|EUR)_).*?(?=.txt)", file_name, perl=T))[[1]]
     top_10_col_name = paste0(new_col_name,"_top10")
     
-    #create binary varibale for top 10%
+    #create binary variable for top 10%
     prs_90_q = quantile(instrument$Residual_PRS, prob = seq(0, 1, length = 11), na.rm = T)["90%"]
     instrument[[top_10_col_name]] = ifelse(instrument$Residual_PRS >= prs_90_q, 1,0)
     
@@ -44,8 +45,15 @@ input_list_eur = Sys.glob(paths = c(paste(prs_files_path,"*ABCD_EUR*.txt",sep=""
 afr_data = load_psr(input_list_afr)
 eur_data = load_psr(input_list_eur)
 
-write.csv(file = "outputs/prs_afr.csv",x = afr_data,row.names=F, na = "")
-write.csv(file = "outputs/prs_eur.csv",x = eur_data,row.names=F, na = "")
+afr_data$genetic_afr = 1
+eur_data$genetic_afr = 0
+
+genetic = rbind.fill(eur_data,afr_data)
+
+ids = which(colnames(genetic) %in% c("FID", "SEX"))
+colnames(genetic)[ids] = paste0(colnames(genetic)[ids], "_genetic")
+
+write.csv(file = "outputs/genetic.csv",x = genetic, row.names=F, na = "")
 
 
 

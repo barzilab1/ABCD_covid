@@ -1,9 +1,9 @@
-# library(plyr)
-
 
 demographics_baseline <- read.csv("outputs/demographics_baseline.csv")
 family <- read.csv("outputs/family.csv")
 site <- read.csv("outputs/site.csv")
+genetics <- read.csv("outputs/genetic.csv")
+
 
 demographics_long <- read.csv("outputs/demographics_long.csv")
 discrimination <- read_csv("outputs/discrimination.csv")
@@ -26,12 +26,21 @@ p_factor_with_sui$ID = NULL
 colnames(p_factor_with_sui)[1:7] = paste0(colnames(p_factor_with_sui)[1:7], "_with_sui")
 
 
+sad_scale_cv_trajectories <- read_csv("~/Box Sync/2. Barzi Lab - Restricted Access/3-ABCD Data Files/Projects/covid_2021/data/3.0/ABCD_COVID_Sadness_Classes_4.to.6_11.11.21.csv")
+sad_scale_cv_trajectories = sad_scale_cv_trajectories[,c("subjectkey", "Classes_4", "white", "black", "hisp")]
+colnames(sad_scale_cv_trajectories)[which(colnames(sad_scale_cv_trajectories) == "subjectkey")] = "src_subject_id"
+colnames(sad_scale_cv_trajectories)[which(colnames(sad_scale_cv_trajectories) == "Classes_4")] = "sad_scale_cv_trajectories"
+colnames(sad_scale_cv_trajectories)[which(colnames(sad_scale_cv_trajectories) == "white")] = "race_white"
+colnames(sad_scale_cv_trajectories)[which(colnames(sad_scale_cv_trajectories) == "black")] = "race_black"
+colnames(sad_scale_cv_trajectories)[which(colnames(sad_scale_cv_trajectories) == "hisp")] = "ethnicity_hisp"
+sad_scale_cv_trajectories[sad_scale_cv_trajectories == -9999] = NA
+
+
 
 covars = merge(site[site$eventname == "baseline_year_1_arm_1", c("src_subject_id","site_id_l_br")], 
                family[family$eventname == "baseline_year_1_arm_1", c("src_subject_id", "rel_family_id")])
 
 covars = merge(covars, demographics_baseline[,grep("src_|race|hisp|born|year", colnames(demographics_baseline))])
-
 
 
 demographics_long = demographics_long[,grep("src_|inter|sex|event|pare|divo|demo_f|inco|age", colnames(demographics_long))]
@@ -48,10 +57,8 @@ ids = union(covidy_final$src_subject_id, covidp_final$src_subject_id)
 ids_1_year = ids[ (ids %in% IVs$src_subject_id[IVs$eventname == "1_year_follow_up_y_arm_1"]) ]
 left_ids = setdiff(ids,ids_1_year)
 
-IVs_1_year = IVs[(IVs$eventname == "1_year_follow_up_y_arm_1") &  (IVs$src_subject_id %in% ids) , ]
-IVs_2_year = IVs[(IVs$eventname == "2_year_follow_up_y_arm_1") &  (IVs$src_subject_id %in% left_ids) , ]
+IVs = IVs[(IVs$eventname == "1_year_follow_up_y_arm_1") &  (IVs$src_subject_id %in% ids) , ]
 
-IVs = rbind.fill(IVs_1_year, IVs_2_year )
 colnames(IVs)[2] = "interview_date_before_covid"
 colnames(IVs)[3] = "interview_age_before_covid"
 IVs$eventname = NULL
@@ -62,7 +69,21 @@ covid_final = merge(covid_final, covars)
 covid_final = merge(covid_final, IVs)
 covid_final = merge(covid_final, p_factor, all.x = T)
 covid_final = merge(covid_final, p_factor_with_sui, all.x = T)
+covid_final = merge(covid_final, sad_scale_cv_trajectories, all.x = T)
+covid_final = merge(covid_final, sad_scale_cv_trajectories, all.x = T)
+covid_final = merge(covid_final, genetics, all.x = T)
 
 
 
 write.csv(file = "outputs/covid_final.csv",x = covid_final, row.names=F, na = "")
+
+
+
+set.seed(131)
+library(data.table)
+one_family_member = setDT(covid_final)[, sample(src_subject_id, 1) ,by = rel_family_id]
+
+write.csv(file = "outputs/one_family_member.csv",x = one_family_member, row.names=F, na = "")
+
+
+

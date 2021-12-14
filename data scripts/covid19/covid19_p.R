@@ -14,7 +14,7 @@ covidp[covidp == 777 | covidp == 999] = NA
 #  new variable to use in reshape from long to wide format
 covidp$timepoint = regmatches(covidp$eventnam, regexpr("cv[1-6]", covidp$eventnam))
 
-#### remove timepoint 6 for now
+#### remove timepoint 6 
 covidp = covidp[covidp$timepoint != "cv6",]
 
 covidp = covidp[,grep("src|timepoint|^fam_(a|w|dia|exp([1-7]|_rac))|increased_conflict|^child_(sep|tested|worried)|(to_|.?)school_(at|close_cv|cv)|work_ability", colnames(covidp), value = T)]
@@ -26,7 +26,6 @@ fam_actions[,c("fam_actions_cv___14","fam_actions_cv___15")] = NULL
 fam_actions$fam_isolate_tot_cv = rowSums(fam_actions[,grep("fam_", colnames(fam_actions))])
 fam_actions_wide = reshape(fam_actions, direction = "wide", idvar = "src_subject_id", timevar = "timepoint", sep = "_")
 fam_actions_wide = fam_actions_wide[,grep("src|tot", colnames(fam_actions_wide))]
-# fam_actions_wide = fam_actions_wide[(rowSums(!is.na(fam_actions_wide)) > 3),]
 fam_actions_wide$fam_isolate_tot_cv_mean = rowMeans(fam_actions_wide[,grep("tot", colnames(fam_actions_wide))], na.rm = T)
 
 #### financial strain
@@ -43,12 +42,10 @@ financial_strain_wide$fam_wage_loss_cv = ifelse(is.na(financial_strain_wide$fam_
 
 #### increased_conflict
 increased_conflict = covidp_wide[,grepl("src|conflict", colnames(covidp_wide))]
-# increased_conflict = increased_conflict[(rowSums(!is.na(increased_conflict)) > 2),]
 increased_conflict$increased_conflict_cv_mean = rowMeans(increased_conflict[,grep("increased_conflict", colnames(increased_conflict))], na.rm = T)
 
 #### child_separate
 child_separate = covidp_wide[,grepl("src|child_separate", colnames(covidp_wide))]
-# child_separate = child_separate[(rowSums(!is.na(child_separate)) > 3),]
 child_separate[,grep("child", colnames(child_separate))]  = child_separate[,grep("child", colnames(child_separate))] -1
 child_separate$child_separate_cv_mean = rowMeans(child_separate[,grep("child", colnames(child_separate))], na.rm = T)
 

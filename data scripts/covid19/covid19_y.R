@@ -1,6 +1,5 @@
 library(psych)
 library(plyr)
-library(psych)
 
 source("config.R")
 source("utility_fun.R")
@@ -12,11 +11,11 @@ covidy_r2 = load_instrument("yabcdcovid19questionnaire01",covid19_4_6_files_path
 covidy = rbind.fill(covidy_r1, covidy_r2)
 covidy[covidy == 777 | covidy == 999] = NA
 
-#  new variable to use in reshape from long to wide format
+# new variable to use in reshape from long to wide format
 covidy$timepoint = regmatches(covidy$eventname, regexpr("cv[1-6]", covidy$eventname))
 
 
-#### remove timepoint 6 for now
+#### remove timepoint 6
 covidy = covidy[covidy$timepoint != "cv6",]
 
 ####################################
@@ -117,12 +116,10 @@ exposures_wide = reshape(exposures, direction = "wide", idvar = "src_subject_id"
 
 ###### bedtime
 bedtime = exposures_wide[,grep("src_|bedtime", colnames(exposures_wide))]
-# bedtime = bedtime[(rowSums(!is.na(bedtime)) > 3),]
 bedtime$bedtime_routine_cv_mean = rowMeans(bedtime[,grep("bedtime", colnames(bedtime))], na.rm = T)
 
 ###### exercise
 exercise = exposures_wide[,grep("src_|exercise", colnames(exposures_wide))]
-# exercise = exercise[(rowSums(!is.na(exercise)) > 2),]
 exercise$demo_exercise_cv_mean = rowMeans(exercise[,grep("exercise", colnames(exercise))], na.rm = T)
 
 ###### Sadness Scale - cont'
@@ -135,12 +132,10 @@ mental_health_wide$mental_health_cv_mean = rowMeans(mental_health_wide[,grep("me
 
 ###### money
 money = exposures_wide[,grep("src_|money", colnames(exposures_wide))]
-# money = money[(rowSums(!is.na(money)) > 3),]
 money$money_cv_mean = rowMeans(money[,grep("money", colnames(money))], na.rm = T)
 
 ###### outdoor_act
 outdoor_act = exposures_wide[,grep("src_|outdoor_act", colnames(exposures_wide))]
-# outdoor_act = outdoor_act[(rowSums(!is.na(outdoor_act)) > 3),]
 outdoor_act$outdoor_act_cv_mean = rowMeans(outdoor_act[,grep("outdoor_act", colnames(outdoor_act))], na.rm = T)
 
 ###### parents monitor
@@ -154,7 +149,6 @@ eigen(xcor)$values[1]/eigen(xcor)$values[2]
 parents_monitor$parent_monitor_tot_bar = rowSums(parents_monitor[,grep("parent_monitor", colnames(parents_monitor))])
 parents_monitor_wide = reshape(parents_monitor, direction = "wide", idvar = "src_subject_id", timevar = "timepoint", sep = "_")
 parents_monitor_wide = parents_monitor_wide[,grep("src|bar", colnames(parents_monitor_wide))]
-# parents_monitor_wide = parents_monitor_wide[(rowSums(!is.na(parents_monitor_wide)) > 3),]
 parents_monitor_wide$parent_monitor_tot_bar_mean = rowMeans(parents_monitor_wide[,grep("bar", colnames(parents_monitor_wide))], na.rm = T)
   
 ###### Perceived Stress Scale - cont'
@@ -163,13 +157,11 @@ perceived_stress_wide$pstr_cv_raw_tot_bar_mean = rowMeans(perceived_stress_wide[
 
 ###### routine
 routine = exposures_wide[,grep("src_|^routine", colnames(exposures_wide))]
-# routine = routine[(rowSums(!is.na(routine)) > 3),]
 routine$routine_cv_mean = rowMeans(routine[,grep("routine", colnames(routine))], na.rm = T)
 
 ###### screen time
 screentime = exposures_wide[,grep("src_|screentime", colnames(exposures_wide))]
 screentime = screentime[,-grep("typical", colnames(screentime))]
-# screentime = screentime[(rowSums(!is.na(screentime)) > 3),]
 screentime$screentime_wknd_hr_cv_mean = rowMeans(screentime[,grep("screentime", colnames(screentime))], na.rm = T)
 
 ###### stressful life event 
@@ -230,10 +222,10 @@ write.csv(covidy_final, "outputs/covidy_final.csv", row.names=F, na = "")
 ####################################
 ###### positive affect scale
 ####################################
-positive_affect_scale = covidy[,grep("^(src_|_age|timepoint|attentive|calm|con|deli|ease|en(e|t)|intere|nih_posaff)", colnames(covidy))]
-positive_affect_scale$nih_posaff_cv_raw_tot[positive_affect_scale$nih_posaff_cv_raw_tot >45 ] = NA
-positive_affect_scale = positive_affect_scale[rowSums(is.na(positive_affect_scale)) != 10,]
-positive_affect_scale_wide = reshape(positive_affect_scale, direction = "wide", idvar = "src_subject_id", timevar = "timepoint", sep = "_")
-
-write.csv(positive_affect_scale_wide, "outputs/covidy_positive_affect_scale.csv", row.names=F, na = "")
+# positive_affect_scale = covidy[,grep("^(src_|_age|timepoint|attentive|calm|con|deli|ease|en(e|t)|intere|nih_posaff)", colnames(covidy))]
+# positive_affect_scale$nih_posaff_cv_raw_tot[positive_affect_scale$nih_posaff_cv_raw_tot >45 ] = NA
+# positive_affect_scale = positive_affect_scale[rowSums(is.na(positive_affect_scale)) != 10,]
+# positive_affect_scale_wide = reshape(positive_affect_scale, direction = "wide", idvar = "src_subject_id", timevar = "timepoint", sep = "_")
+# 
+# write.csv(positive_affect_scale_wide, "outputs/covidy_positive_affect_scale.csv", row.names=F, na = "")
 
