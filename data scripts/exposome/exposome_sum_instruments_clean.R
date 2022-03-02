@@ -3,7 +3,7 @@ source("config.R")
 source("utility_fun.R")
 
 ########### Sum Scores Culture & Environment Youth ########### 
-sscey01 = load_instrument("abcd_sscey01",exposome_files_path)
+sscey01 = load_instrument("abcd_sscey01",abcd_files_path)
 
 sscey01 = sscey01[, grepl("^(src|interview|event|sex|pmq|fes|srpf|dim)", colnames(sscey01))]
 
@@ -16,7 +16,7 @@ summary(sscey01)
 
 
 ########### Sum Scores Mobil Tech Youth ########### 
-ssmty = load_instrument("abcd_ssmty01",exposome_files_path)
+ssmty = load_instrument("abcd_ssmty01",abcd_files_path)
 
 ssmty = ssmty[, grepl("(src|interview|event|sex)|_(weekend|weekday)$", colnames(ssmty))]
 ssmty$stq_y_total_mean = rowMeans(ssmty[,grep("_ss_",colnames(ssmty))], na.rm = T)

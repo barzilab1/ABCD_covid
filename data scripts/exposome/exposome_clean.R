@@ -3,12 +3,11 @@ source("config.R")
 source("utility_fun.R")
 
 ########### Discrimination ########### 
-ydmes01 = load_instrument("abcd_ydmes01",exposome_files_path)
+ydmes01 = load_instrument("abcd_ydmes01",abcd_files_path)
 
 ydmes01[ydmes01 == 777 | ydmes01 == 999] = NA
 ydmes01 = droplevels(ydmes01)
 
-# summary(ydmes01[ydmes01$eventname == "1_year_follow_up_y_arm_1",])
 
 #check collinearity 
 library("psych")
@@ -24,9 +23,9 @@ write.csv(ydmes01, "outputs/discrimination.csv", row.names=F, na = "")
 
 
 ########### family relationship section ########### 
-acspsw03 = load_instrument("acspsw03",exposome_files_path)
+acspsw03 = load_instrument("acspsw03",abcd_files_path)
 
-acspsw03 = acspsw03[,c("src_subject_id","eventname","rel_family_id")]
+acspsw03 = acspsw03[acspsw03$eventname == "baseline_year_1_arm_1",c("src_subject_id","eventname","rel_family_id")]
 
 summary(acspsw03)
 

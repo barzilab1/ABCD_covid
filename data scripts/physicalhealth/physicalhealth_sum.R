@@ -4,7 +4,7 @@ source("utility_fun.R")
 
 ########## ABCD Sum Scores Physical Health Parent ###########
 
-ssphp01 = load_instrument("abcd_ssphp01", physicalhealth_files_path)
+ssphp01 = load_instrument("abcd_ssphp01", abcd_files_path)
 
 ssphp01 = ssphp01[,grepl("src|event|sex|inter|sds_p_ss_total$",colnames(ssphp01))]
 

@@ -5,17 +5,16 @@ source("config.R")
 source("utility_fun.R")
 
 
-covidp_r1 = load_instrument("pabcdcovid19questionnaire01",covid19_1_3_files_path)
-covidp_r2 = load_instrument("pabcdcovid19questionnaire01",covid19_4_6_files_path)
+covidp_r1 = load_instrument("pabcdcovid19questionnaire01",abcd_covid_r1_files_path)
+covidp_r2 = load_instrument("pabcdcovid19questionnaire01",abcd_covid_r2_files_path)
+covidp_r3 = load_instrument("pabcdcovid19questionnaire01",abcd_covid_r3_files_path)
 
-covidp = rbind.fill(covidp_r1, covidp_r2)
+covidp = rbind.fill(covidp_r1, covidp_r2, covidp_r3)
 covidp[covidp == 777 | covidp == 999] = NA
 
 #  new variable to use in reshape from long to wide format
-covidp$timepoint = regmatches(covidp$eventnam, regexpr("cv[1-6]", covidp$eventnam))
+covidp$timepoint = regmatches(covidp$eventnam, regexpr("cv[1-7]", covidp$eventnam))
 
-#### remove timepoint 6 
-covidp = covidp[covidp$timepoint != "cv6",]
 
 covidp = covidp[,grep("src|timepoint|^fam_(a|w|dia|exp([1-7]|_rac))|increased_conflict|^child_(sep|tested|worried)|(to_|.?)school_(at|close_cv|cv)|work_ability", colnames(covidp), value = T)]
 covidp_wide = reshape(covidp, direction = "wide", idvar = "src_subject_id", timevar = "timepoint", sep = "_")
@@ -99,7 +98,10 @@ covidp_final = merge(covidp_final,school, all = T)
 covidp_final = merge(covidp_final,work_ability, all = T)
 covidp_final = merge(covidp_final,racism, all = T)
 
-covidp_final = covidp_final[,-grep("cv[1-5]", colnames(covidp_final) )]
+covidp_final = covidp_final[,-grep("cv[1-7]", colnames(covidp_final) )]
 
 write.csv(covidp_final, "outputs/covidp_final.csv", row.names=F, na = "")
+
+
+
 

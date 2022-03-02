@@ -15,8 +15,8 @@ covidy_final <- read_csv("outputs/covidy_final.csv")
 covidp_final <- read_csv("outputs/covidp_final.csv")
 
 
-p_factor <-  read_csv("~/Box Sync/2. Barzi Lab - Restricted Access/3-ABCD Data Files/Projects/exposome/data/p factor scores/ABCD_psychopathology_bifactor_scores_23March2021.csv")
-p_factor_with_sui <-  read_csv("~/Box Sync/2. Barzi Lab - Restricted Access/3-ABCD Data Files/Projects/exposome/data/p factor scores/ABCD_psychopathology_bifactor_scores_23March2021_WITH_SUICIDALITY.csv")
+p_factor <-  read_csv("~/Box Sync/2. Barzi Lab - Restricted Access/2-ABCD Data Files/Projects/exposome/3.0/data/p factor scores/ABCD_psychopathology_bifactor_scores_23March2021.csv")
+p_factor_with_sui <-  read_csv("~/Box Sync/2. Barzi Lab - Restricted Access/2-ABCD Data Files/Projects/exposome/3.0/data/p factor scores/ABCD_psychopathology_bifactor_scores_23March2021_WITH_SUICIDALITY.csv")
 
 p_factor$src_subject_id = paste0("NDAR_", p_factor$ID)
 p_factor$ID = NULL
@@ -26,7 +26,7 @@ p_factor_with_sui$ID = NULL
 colnames(p_factor_with_sui)[1:7] = paste0(colnames(p_factor_with_sui)[1:7], "_with_sui")
 
 
-sad_scale_cv_trajectories <- read_csv("~/Box Sync/2. Barzi Lab - Restricted Access/3-ABCD Data Files/Projects/covid_2021/data/3.0/ABCD_COVID_Sadness_Classes_4.to.6_11.11.21.csv")
+sad_scale_cv_trajectories <- read_csv("~/Box Sync/2. Barzi Lab - Restricted Access/2-ABCD Data Files/Projects/covid_2021/data/3.0/ABCD_COVID_Sadness_Classes_4.to.6_11.11.21.csv")
 sad_scale_cv_trajectories = sad_scale_cv_trajectories[,c("subjectkey", "Classes_4", "white", "black", "hisp")]
 colnames(sad_scale_cv_trajectories)[which(colnames(sad_scale_cv_trajectories) == "subjectkey")] = "src_subject_id"
 colnames(sad_scale_cv_trajectories)[which(colnames(sad_scale_cv_trajectories) == "Classes_4")] = "sad_scale_cv_trajectories"
@@ -36,8 +36,7 @@ colnames(sad_scale_cv_trajectories)[which(colnames(sad_scale_cv_trajectories) ==
 sad_scale_cv_trajectories[sad_scale_cv_trajectories == -9999] = NA
 
 
-
-covars = merge(site[site$eventname == "baseline_year_1_arm_1", c("src_subject_id","site_id_l_br")], 
+covars = merge(site[site$eventname == "1_year_follow_up_y_arm_1", c("src_subject_id","site_id_l_br")], 
                family[family$eventname == "baseline_year_1_arm_1", c("src_subject_id", "rel_family_id")])
 
 covars = merge(covars, demographics_baseline[,grep("src_|race|hisp|born|year", colnames(demographics_baseline))])
@@ -51,13 +50,8 @@ IVs = merge(IVs, ksad_anxiety, all = T)
 IVs = merge(IVs, discrimination, all = T)
 
 
-### get IVs 2 year follow up -> 1 year follow up -> baseline 
-ids = union(covidy_final$src_subject_id, covidp_final$src_subject_id)
 
-ids_1_year = ids[ (ids %in% IVs$src_subject_id[IVs$eventname == "1_year_follow_up_y_arm_1"]) ]
-left_ids = setdiff(ids,ids_1_year)
-
-IVs = IVs[(IVs$eventname == "1_year_follow_up_y_arm_1") &  (IVs$src_subject_id %in% ids) , ]
+IVs = IVs[(IVs$eventname == "1_year_follow_up_y_arm_1") , ]
 
 colnames(IVs)[2] = "interview_date_before_covid"
 colnames(IVs)[3] = "interview_age_before_covid"

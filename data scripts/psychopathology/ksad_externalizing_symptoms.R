@@ -1,9 +1,8 @@
-#note: 2-year follow up: there are new features available that weren't tag yet by ran as internal/external and dsm5
 
 source("config.R")
 source("utility_fun.R")
 
-ksad_p = load_instrument("abcd_ksad01",psychopathology_files_path)
+ksad_p = load_instrument("abcd_ksad01",abcd_files_path)
 
 #555 and 888 will be treated as NA
 ksad_p[ksad_p == "888" | ksad_p == "555"] = NA

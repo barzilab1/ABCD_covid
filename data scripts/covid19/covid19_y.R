@@ -5,18 +5,16 @@ source("config.R")
 source("utility_fun.R")
 
 
-covidy_r1 = load_instrument("yabcdcovid19questionnaire01",covid19_1_3_files_path)
-covidy_r2 = load_instrument("yabcdcovid19questionnaire01",covid19_4_6_files_path)
+covidy_r1 = load_instrument("yabcdcovid19questionnaire01",abcd_covid_r1_files_path)
+covidy_r2 = load_instrument("yabcdcovid19questionnaire01",abcd_covid_r2_files_path)
+covidy_r3 = load_instrument("yabcdcovid19questionnaire01",abcd_covid_r3_files_path)
 
-covidy = rbind.fill(covidy_r1, covidy_r2)
+covidy = rbind.fill(covidy_r1, covidy_r2, covidy_r3)
 covidy[covidy == 777 | covidy == 999] = NA
 
 # new variable to use in reshape from long to wide format
-covidy$timepoint = regmatches(covidy$eventname, regexpr("cv[1-6]", covidy$eventname))
+covidy$timepoint = regmatches(covidy$eventname, regexpr("cv[1-7]", covidy$eventname))
 
-
-#### remove timepoint 6
-covidy = covidy[covidy$timepoint != "cv6",]
 
 ####################################
 ###### outputs
@@ -38,9 +36,9 @@ sadness_scale = sadness_scale[rowSums(is.na(sadness_scale)) == 0,]
 sadness_scale_wide = reshape(sadness_scale, direction = "wide", idvar = "src_subject_id", timevar = "timepoint", sep = "_")
 
 # include kids with at least 2 time points
-# sadness_scale_wide = sadness_scale_wide[rowSums(!is.na(sadness_scale_wide)) > 20,]
+sadness_scale_wide = sadness_scale_wide[rowSums(!is.na(sadness_scale_wide)) > 20,]
 
-# write.csv(file = "outputs/sadness_scale_wide.csv",x = sadness_scale_wide ,row.names=F, na = "")
+write.csv(file = "outputs/sadness_scale_wide.csv",x = sadness_scale_wide ,row.names=F, na = "")
 
 ###### 2. Substance
 substance = covidy[,grep("src_|_age|timepoint|su_(a|l|m)", colnames(covidy))]
@@ -48,7 +46,7 @@ substance$su_mj_edible_cv = NULL
 substance$su_mj_oils_cv = NULL
 
 # no missing data
-# substance = substance[rowSums(is.na(substance)) == 0,]
+substance = substance[rowSums(is.na(substance)) == 0,]
 
 # convert to binary feature 
 substance$su_alcohol_binary = ifelse(substance$su_alcohol_cv > 1, 1, 0)
@@ -75,9 +73,9 @@ substance$su_total_cv = rowSums(substance[ ,grep("binary|mj", colnames(substance
 substance_wide = reshape(substance, direction = "wide", idvar = "src_subject_id", timevar = "timepoint", sep = "_")
 
 # include kids with at least 3 time points
-# substance_wide = substance_wide[(rowSums(!is.na(substance_wide)) > 33),]
+substance_wide = substance_wide[(rowSums(!is.na(substance_wide)) > 33),]
 
-# write.csv(file = "outputs/substance_wide.csv",x = substance_wide ,row.names=F, na = "")
+write.csv(file = "outputs/substance_wide.csv",x = substance_wide ,row.names=F, na = "")
 
 
 ###### 3. Perceived Stress Scale
@@ -89,9 +87,9 @@ perceived_stress = perceived_stress[rowSums(is.na(perceived_stress)) == 0,]
 perceived_stress_wide = reshape(perceived_stress, direction = "wide", idvar = "src_subject_id", timevar = "timepoint", sep = "_")
 
 # include kids with at least 3 time points
-# perceived_stress_wide = perceived_stress_wide[(rowSums(!is.na(perceived_stress_wide)) > 18),]
+perceived_stress_wide = perceived_stress_wide[(rowSums(!is.na(perceived_stress_wide)) > 18),]
 
-# write.csv(file = "outputs/perceived_stress_wide.csv",x = perceived_stress_wide ,row.names=F, na = "")
+write.csv(file = "outputs/perceived_stress_wide.csv",x = perceived_stress_wide ,row.names=F, na = "")
 
 
 ###### 4. Mental health
@@ -101,9 +99,9 @@ mental_health = mental_health[rowSums(is.na(mental_health))  == 0,]
 mental_health_wide = reshape(mental_health, direction = "wide", idvar = "src_subject_id", timevar = "timepoint", sep = "_")
 
 # include kids with at least 2 time points
-# mental_health_wide = mental_health_wide[(rowSums(!is.na(mental_health_wide)) > 4),]
+mental_health_wide = mental_health_wide[(rowSums(!is.na(mental_health_wide)) > 4),]
 
-# write.csv(file = "outputs/mental_health_wide.csv",x = mental_health_wide ,row.names=F, na = "")
+write.csv(file = "outputs/mental_health_wide.csv",x = mental_health_wide ,row.names=F, na = "")
 
 
 
@@ -174,7 +172,10 @@ VSS.scree(xcor)
 eigen(xcor)$values[1]/eigen(xcor)$values[2]
 
 stressful_events$strle_tot_bar = rowSums(stressful_events[,grep("strle", colnames(stressful_events))])
-stressful_events$timepoint = NULL
+stressful_events_wide = reshape(stressful_events, direction = "wide", idvar = "src_subject_id", timevar = "timepoint", sep = "_")
+stressful_events_wide = stressful_events_wide[,grep("src_|tot_bar", colnames(stressful_events_wide))]
+stressful_events_wide$strle_tot_bar_max = apply(stressful_events_wide[,grep("bar", colnames(stressful_events_wide))], 1, max, na.rm = T)
+
 
 ###### Substance - cont'
 substance_wide = substance_wide[,grep("src_|mj|alcohol_b|total|other", colnames(substance_wide))]
@@ -207,17 +208,27 @@ covidy_final = merge(covidy_final,parents_monitor_wide, all = T)
 covidy_final = merge(covidy_final,perceived_stress_wide, all = T)
 covidy_final = merge(covidy_final,routine, all = T)
 covidy_final = merge(covidy_final,screentime, all = T)
-covidy_final = merge(covidy_final,stressful_events, all = T)
+covidy_final = merge(covidy_final,stressful_events_wide, all = T)
 covidy_final = merge(covidy_final,substance_wide, all = T)
 covidy_final = merge(covidy_final,racism, all = T)
 covidy_final = merge(covidy_final,worry, all = T)
 
-covidy_final = covidy_final[,grepl("src|mean|max|strle_tot|worried_cv$", colnames(covidy_final))]
+covidy_final = covidy_final[,grepl("src|mean|max|worried_cv$", colnames(covidy_final))]
 covidy_final = covidy_final[!rowSums(is.na(covidy_final)) > 14,]
 
 
 write.csv(covidy_final, "outputs/covidy_final.csv", row.names=F, na = "")
 
+
+
+
+covidy_long = merge(sadness_scale, substance, all = T)
+covidy_long = merge(covidy_long, perceived_stress, all = T)
+covidy_long = merge(covidy_long, mental_health, all = T)
+covidy_long = merge(covidy_long, exposures, all = T)
+covidy_long = merge(covidy_long, parents_monitor, all = T)
+covidy_long = merge(covidy_long, stressful_events, all = T)
+write.csv(covidy_long, "outputs/covidy_long.csv", row.names=F, na = "")
 
 ####################################
 ###### positive affect scale

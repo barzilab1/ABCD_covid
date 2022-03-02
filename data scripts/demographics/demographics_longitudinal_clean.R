@@ -9,12 +9,12 @@ library(data.table)
 source("config.R")
 source("utility_fun.R")
 
-demographics_set = load_instrument("abcd_lpds01",demographics_files_path)
+demographics_set = load_instrument("abcd_lpds01",abcd_files_path)
+demographics_set[demographics_set == 777 | demographics_set == 999] = NA
 
 
 ########### rearrange data ########### 
-###1. convert variables names to be more readable  
-###2. change outliers (777,999) to be NA
+### convert variables names to be more readable  
 demographics_set = data.table(demographics_set)
 
 ########### sex
@@ -27,27 +27,17 @@ demographics_set[, age := interview_age]
 
 ########### gender
 demographics_set[,gender := demo_gender_id_v2_l]
-demographics_set[(gender %in%  c(777,999)) ,gender := NA] 
 demographics_set[, gender:= gender-1]
 demographics_set[, demo_gender_id_v2_l:= NULL]
 
 ########### parents education
-demographics_set[(demo_prnt_ed_v2_l %in%  c(777,999)), demo_prnt_ed_v2_l:= NA]
-demographics_set[(demo_prtnr_ed_v2_l %in%  c(777,999)), demo_prtnr_ed_v2_l:= NA]
-
-demographics_set[, parents_avg_edu:= (demo_prnt_ed_v2_l + demo_prtnr_ed_v2_l)/2]
-#in case of edu is missing in one of the parents, it will be the edu the of other parent 
-demographics_set[is.na(parents_avg_edu), parents_avg_edu:= demo_prnt_ed_v2_l]
-demographics_set[is.na(parents_avg_edu), parents_avg_edu:= demo_prtnr_ed_v2_l]
+demographics_set[, parents_avg_edu:= rowMeans(.SD, na.rm = T), .SDcols = c("demo_prnt_ed_v2_l", "demo_prtnr_ed_v2_l")]
 
 ########### family income 
 demographics_set[,household_income:= demo_comb_income_v2_l]
-demographics_set[( household_income %in%  c(777,999)) ,household_income:= NA]
 demographics_set[,demo_comb_income_v2_l := NULL]
 
 ########### parents married status 
-demographics_set[demo_prnt_marital_v2_l == 777 , demo_prnt_marital_v2_l:= NA]
-
 demographics_set[,separated_or_divorced := 0]
 demographics_set[(demo_prnt_marital_v2_l %in%  c(3,4)), separated_or_divorced := 1]
 demographics_set[is.na(demo_prnt_marital_v2_l), separated_or_divorced := NA]
@@ -60,15 +50,9 @@ demographics_set[,living_with_partenr_or_married := 0]
 demographics_set[(demo_prnt_marital_v2_l %in% c(1,6)), living_with_partenr := 1]
 demographics_set[is.na(demo_prnt_marital_v2_l), living_with_partenr := NA]
 
-########### child religious 
-demographics_set[demo_yrs_1_l %in% c(777, 999), demo_yrs_1_l := NA]
-demographics_set[demo_yrs_2_l %in% c(777, 999), demo_yrs_2_l := NA]
 
 ########### economic hardship
 economic_hardship_names = grep("demo_fam_exp", colnames(demographics_set),value = T)
-for(name in economic_hardship_names){
-  set(demographics_set,i = which(demographics_set[[name]] == 777), j= name, value = NA)
-}
 
 
 library("psych")
@@ -76,9 +60,15 @@ xcor <- polychoric(as.data.frame(demographics_set)[ ,economic_hardship_names ])$
 VSS.scree(xcor)
 eigen(xcor)$values[1]/eigen(xcor)$values[2]
 
-demographics_set[, demo_fam_poverty := rowSums(.SD, na.rm = T), .SDcols = economic_hardship_names]
+demographics_set[, demo_fam_poverty := {
+  fcase(
+    rowSums(is.na(.SD)) != 7,rowSums(.SD, na.rm = T) ,
+    default = NA
+  )
+}, .SDcols = economic_hardship_names]
+
+
 # demographics_set[ , View(.SD), .SDcols = c(economic_hardship_names, "demo_fam_poverty") ]
-demographics_set[rowSums(is.na(demographics_set[,.SD,.SDcols = economic_hardship_names])) == 7 , "demo_fam_poverty" := NA]
 
 
 
