@@ -16,8 +16,12 @@ covidp[covidp == 777 | covidp == 999] = NA
 covidp$timepoint = regmatches(covidp$eventnam, regexpr("cv[1-7]", covidp$eventnam))
 
 
-covidp = covidp[,grep("src|timepoint|^fam_(a|w|dia|exp([1-7]|_rac))|increased_conflict|^child_(sep|tested|worried)|(to_|.?)school_(at|close_cv|cv)|work_ability", colnames(covidp), value = T)]
+covidp = covidp[,grep("src|timepoint|^fam_(a|w|dia|exp([1-7]|_rac))|increased_conflict|^child_(sep|tested|worried)|(to_|.?)school_(at|close_cv|cv)|work_ability|interview_age|child_enjoy|child_fear", colnames(covidp), value = T)]
 covidp_wide = reshape(covidp, direction = "wide", idvar = "src_subject_id", timevar = "timepoint", sep = "_")
+
+#### interview age
+interview_age = covidp_wide[,grepl("src|interview_age", colnames(covidp_wide))]
+interview_age$age_mean_cv = rowMeans(interview_age[,-grep("src", colnames(interview_age))], na.rm = T)
 
 #### family actions
 fam_actions = covidp[,grepl("src|timepoint|fam_a", colnames(covidp))]
@@ -85,10 +89,13 @@ work_ability$work_ability_cv_mean = rowMeans(work_ability[,grep("work", colnames
 racism = covidp_wide[,grepl("src|rac", colnames(covidp_wide))]
 racism$fam_exp_racism_cv_mean = rowMeans(racism[,grep("rac", colnames(racism))], na.rm = T)
 
+#### child enjoy/fear
+enjoy_fear = covidp_wide[,grepl("src|child_enjoy|child_fear", colnames(covidp_wide))]
+enjoy_fear$child_enj_fear_mean_cv = rowMeans(enjoy_fear[,-grep("src", colnames(enjoy_fear))], na.rm = T)
 
 
-
-covidp_final = merge(fam_actions_wide,financial_strain_wide, all = T)
+covidp_final = merge(interview_age,fam_actions_wide, all = T)
+covidp_final = merge(covidp_final,financial_strain_wide, all = T)
 covidp_final = merge(covidp_final,increased_conflict , all = T)
 covidp_final = merge(covidp_final,child_separate , all = T)
 covidp_final = merge(covidp_final,child_test_wide, all = T)
@@ -97,11 +104,9 @@ covidp_final = merge(covidp_final,family_diagnosed, all = T)
 covidp_final = merge(covidp_final,school, all = T)
 covidp_final = merge(covidp_final,work_ability, all = T)
 covidp_final = merge(covidp_final,racism, all = T)
+covidp_final = merge(covidp_final,enjoy_fear, all = T)
 
-covidp_final = covidp_final[,-grep("cv[1-7]", colnames(covidp_final) )]
+# keep fam_wage_loss_cv_cv1 
+covidp_final = covidp_final[,grep("src|age_mean_cv|timepoint|fam_wage_loss_cv_cv1|cv$|cv_mean$|enj_fear", colnames(covidp_final) )]
 
 write.csv(covidp_final, "outputs/covidp_final.csv", row.names=F, na = "")
-
-
-
-
