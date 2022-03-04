@@ -148,7 +148,7 @@ parents_monitor$parent_monitor_tot_bar = rowSums(parents_monitor[,grep("parent_m
 parents_monitor_wide = reshape(parents_monitor, direction = "wide", idvar = "src_subject_id", timevar = "timepoint", sep = "_")
 parents_monitor_wide = parents_monitor_wide[,grep("src|bar", colnames(parents_monitor_wide))]
 parents_monitor_wide$parent_monitor_tot_bar_mean = rowMeans(parents_monitor_wide[,grep("bar", colnames(parents_monitor_wide))], na.rm = T)
-  
+
 ###### Perceived Stress Scale - cont'
 perceived_stress_wide = perceived_stress_wide[,grep("src_|bar", colnames(perceived_stress_wide))]
 perceived_stress_wide$pstr_cv_raw_tot_bar_mean = rowMeans(perceived_stress_wide[,grep("bar", colnames(perceived_stress_wide))], na.rm = T)
@@ -213,7 +213,7 @@ covidy_final = merge(covidy_final,substance_wide, all = T)
 covidy_final = merge(covidy_final,racism, all = T)
 covidy_final = merge(covidy_final,worry, all = T)
 
-covidy_final = covidy_final[,grepl("src|mean|max|worried_cv$", colnames(covidy_final))]
+covidy_final = covidy_final[,grepl("src|mean|max|worried_cv$|money_cv_cv1", colnames(covidy_final))]
 covidy_final = covidy_final[!rowSums(is.na(covidy_final)) > 14,]
 
 
@@ -222,13 +222,13 @@ write.csv(covidy_final, "outputs/covidy_final.csv", row.names=F, na = "")
 
 
 
-covidy_long = merge(sadness_scale, substance, all = T)
-covidy_long = merge(covidy_long, perceived_stress, all = T)
-covidy_long = merge(covidy_long, mental_health, all = T)
-covidy_long = merge(covidy_long, exposures, all = T)
-covidy_long = merge(covidy_long, parents_monitor, all = T)
-covidy_long = merge(covidy_long, stressful_events, all = T)
-write.csv(covidy_long, "outputs/covidy_long.csv", row.names=F, na = "")
+# covidy_long = merge(sadness_scale, substance, all = T)
+# covidy_long = merge(covidy_long, perceived_stress, all = T)
+# covidy_long = merge(covidy_long, mental_health, all = T)
+# covidy_long = merge(covidy_long, exposures, all = T)
+# covidy_long = merge(covidy_long, parents_monitor, all = T)
+# covidy_long = merge(covidy_long, stressful_events, all = T)
+# write.csv(covidy_long, "outputs/covidy_long.csv", row.names=F, na = "")
 
 ####################################
 ###### positive affect scale
