@@ -25,7 +25,7 @@ demo_1year <-
   ) %>% 
   filter(eventname == "1_year_follow_up_y_arm_1") %>%
   
-  full_join(
+  left_join(
     demographics_baseline %>% select(
       src_subject_id,
       race_white,
