@@ -39,4 +39,4 @@ demo_1year <-
   mutate(participated_cv = case_when(src_subject_id %in% covid_final_cv_id ~ 1,
                                      TRUE ~ 0))
 
-write.csv(file = "outputs/demo_1year.csv",x = one_family_member, row.names=F, na = "")
+write.csv(file = "outputs/demographics_1year.csv",x = demo_1year, row.names=F, na = "")
