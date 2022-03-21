@@ -1,0 +1,869 @@
+---
+title: "Mediation analysis"
+author: "Kate Tran"
+date: "3/21/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(readxl)
+library(lavaan)
+library(lavaanPlot)
+library(tidyr)
+library(DiagrammeRsvg)
+library(rsvg)
+library(readr)
+library(sjPlot)
+
+# save.image("~/Documents/KateTran_Github/ABCD_covid/ABCD_covid_mediation_analysis_final.RData")
+```
+
+```{r}
+# Read data from mixed model final long data
+covidp_long <- read.csv("~/Documents/KateTran_Github/ABCD_covid/outputs_Kate/covidp_long.csv")
+covidy_long <- read.csv("~/Documents/KateTran_Github/ABCD_covid/outputs_Kate/covidy_long.csv")
+family_ <- read.csv("~/Documents/KateTran_Github/ABCD_covid/outputs_Kate/family.csv") %>%
+  dplyr::select(-eventname)
+demo_baseline <- read.csv("~/Documents/KateTran_Github/ABCD_covid/outputs_Kate/demographics_baseline.csv")
+demographics_long <- read.csv("~/Documents/KateTran_Github/ABCD_covid/outputs_Kate/demographics_long.csv")
+exposome_sum_set <- read.csv("~/Documents/KateTran_Github/ABCD_covid/outputs_Kate/exposome_sum_set.csv")
+p_factor_with_sui <- 
+  read_csv("~/Library/CloudStorage/Box-Box/2-ABCD Data Files/Projects/exposome/3.0/data/p factor scores/ABCD_psychopathology_bifactor_scores_23March2021_WITH_SUICIDALITY.csv")
+
+p_factor_with_sui$src_subject_id <- paste0("NDAR_", p_factor_with_sui$ID)
+p_factor_with_sui$ID <- NULL
+colnames(p_factor_with_sui)[1:7] <- paste0(colnames(p_factor_with_sui)[1:7], "_with_sui")
+
+
+IVs <- merge(demographics_long, exposome_sum_set, all = T)
+IVs <- IVs[(IVs$eventname == "1_year_follow_up_y_arm_1"),]
+
+colnames(IVs)[2] <- "interview_date_before_covid"
+colnames(IVs)[3] <- "interview_age_before_covid"
+IVs$eventname <- NULL
+
+
+covid_long_mixed_model <- merge(covidp_long, covidy_long, all = T)
+covid_long_mixed_model <- merge(covid_long_mixed_model, family_, all.x = T)
+covid_long_mixed_model <- merge(covid_long_mixed_model, IVs)
+
+covid_long_mixed_model <- covid_long_mixed_model %>%
+  dplyr::mutate(timepoint = sub("cv", "" , timepoint)) %>%
+  dplyr::select(-eventname,-contains("fam_actions_cv"))
+
+# to wide format
+covid_wide <- covid_long_mixed_model %>%
+  pivot_wider(
+    .,
+    names_from = timepoint,
+    values_from = c(
+      fam_exp_racism_cv:pstr_cv_raw_tot_bar.1,
+      ends_with("_l"), interview_age,
+      stq_y_ss_weekday:dim_y_ss_mean
+    ),
+    names_sep = "_"
+  ) %>%
+  dplyr::select(
+    -sex,
+    -household_income,
+    -parents_avg_edu,
+    -separated_or_divorced,
+    -parents_married,
+    -age,
+    -sex_br,
+    -gender,
+    -demo_fam_poverty
+  )
+
+demo_baseline[, c("interview_date" , "interview_age" , "eventname")] <- NULL
+covid_wide <- merge(covid_wide, demo_baseline, all.x = T)
+
+covid_wide$rel_family_id <- covid_wide$rel_family_id + 1
+
+
+covid_wide <- merge(covid_wide, p_factor_with_sui, all.x = T)
+```
+
+# Create the wide format
+
+```{r}
+covid_wide <- covid_wide %>%
+  dplyr::select(
+    # IV
+    fam_wage_loss_cv_1,
+    fam_wage_loss_cv_2,
+    fam_wage_loss_cv_3,
+    fam_wage_loss_cv_4,
+    fam_wage_loss_cv_5,
+    fam_wage_loss_cv_6,
+    fam_wage_loss_cv_7,
+    # M
+    increased_conflict_cv_1,
+    increased_conflict_cv_3,
+    increased_conflict_cv_5,
+    # M
+    work_ability_cv_1,
+    work_ability_cv_2,
+    work_ability_cv_3,
+    work_ability_cv_4,
+    work_ability_cv_5,
+    work_ability_cv_6,
+    work_ability_cv_7,
+    # M
+    parent_monitor_tot_bar_1,
+    parent_monitor_tot_bar_2,
+    parent_monitor_tot_bar_3,
+    parent_monitor_tot_bar_4,
+    parent_monitor_tot_bar_5,
+    parent_monitor_tot_bar_6,
+    parent_monitor_tot_bar_7,
+    # DV felt_sad_cv_raw_tot_bar_Z
+    felt_sad_cv_raw_tot_bar_1,
+    felt_sad_cv_raw_tot_bar_2,
+    felt_sad_cv_raw_tot_bar_3,
+    felt_sad_cv_raw_tot_bar_4,
+    felt_sad_cv_raw_tot_bar_5,
+    felt_sad_cv_raw_tot_bar_6,
+    felt_sad_cv_raw_tot_bar_7,
+    ## money worries
+    money_cv_1,
+    money_cv_2,
+    money_cv_3,
+    money_cv_4,
+    money_cv_5,
+    money_cv_6,
+    money_cv_7,
+    
+    ## discrimination
+    dim_y_ss_mean_1,
+    dim_y_ss_mean_2,
+    dim_y_ss_mean_3,
+    dim_y_ss_mean_4,
+    dim_y_ss_mean_5,
+    dim_y_ss_mean_6,
+    dim_y_ss_mean_7,
+    
+    # Covariates
+    sex_br,
+    race_white,
+    race_black,
+    race_asian,
+    ethnicity_hisp,
+    household_income,
+    parents_avg_edu,
+    contains("mean"),
+    interview_age_1,
+    interview_age_2,
+    interview_age_3,
+    interview_age_4,
+    interview_age_5,
+    interview_age_6,
+    interview_age_7,
+    
+    # General_p_with_sui
+    General_p_with_sui
+  )
+
+
+covid_wide <- covid_wide %>%
+  rowwise() %>%
+  # Create new variables for mediation model
+  dplyr::mutate(
+    # Summary of IV at t1 and t2, if any = 1 then 1, both 0 then 0, 1NA then NA
+    fam_wage_loss_cv_mean12 = case_when(
+      fam_wage_loss_cv_1 == 1 | fam_wage_loss_cv_2 == 1 ~ 1,
+      fam_wage_loss_cv_1 == 0 & fam_wage_loss_cv_2 == 0 ~ 0,
+      is.na(fam_wage_loss_cv_1) &
+        fam_wage_loss_cv_2 == 0  ~ NA_real_,
+      is.na(fam_wage_loss_cv_2) &
+        fam_wage_loss_cv_1 == 0  ~ NA_real_,
+      is.na(fam_wage_loss_cv_1) &
+        is.na(fam_wage_loss_cv_2) ~ NA_real_
+    )
+  ) %>%
+  dplyr::mutate(
+    # Summary of moderators t3&t5 or t3-t6 mean
+    ## increased_conflict_cv
+    increased_conflict_cv_mean35 = mean(c(
+      increased_conflict_cv_3, increased_conflict_cv_5
+    ), na.rm = TRUE),
+    
+    ## work_ability_cv
+    work_ability_cv_mean3to6 = mean(
+      c(
+        work_ability_cv_3,
+        work_ability_cv_4,
+        work_ability_cv_5,
+        work_ability_cv_6
+      ),
+      na.rm = TRUE
+    ),
+    
+    ## parent_monitor_tot_bar
+    parent_monitor_tot_bar_cv_mean3to6 = mean(
+      c(
+        parent_monitor_tot_bar_3,
+        parent_monitor_tot_bar_4,
+        parent_monitor_tot_bar_5,
+        parent_monitor_tot_bar_6
+      ),
+      na.rm = TRUE
+    ),
+    
+    ## worries about money T3, T4, T5
+    money_cv_mean345 = mean(c(money_cv_3, money_cv_4, money_cv_5), na.rm = TRUE),
+    
+    ## DV mean T5 and T7
+    felt_sad_cv_raw_tot_bar_mean57 = mean(
+      c(felt_sad_cv_raw_tot_bar_5, felt_sad_cv_raw_tot_bar_7),
+      na.rm = TRUE
+    ),
+    
+    ## Discrimination mean 7 time points
+    dim_y_ss_mean = mean(
+      c(
+        dim_y_ss_mean_1,
+        dim_y_ss_mean_2,
+        dim_y_ss_mean_3,
+        dim_y_ss_mean_4,
+        dim_y_ss_mean_5,
+        dim_y_ss_mean_6,
+        dim_y_ss_mean_7
+      ),
+      na.rm = TRUE
+    ),
+    
+    ## Age at interview mean
+    age_mean_cv = mean(
+      c(
+        interview_age_1,
+        interview_age_2,
+        interview_age_3,
+        interview_age_4,
+        interview_age_5,
+        interview_age_6,
+        interview_age_7
+      ),
+      na.rm = TRUE
+    )
+  ) 
+
+
+
+
+
+# Add variables
+covid_wide <- covid_wide %>%
+  rowwise() %>%
+  dplyr::mutate(
+    ## work_ability_cv T3-5
+    work_ability_cv_mean3to5 = mean(
+      c(work_ability_cv_3, work_ability_cv_4, work_ability_cv_5),
+      na.rm = TRUE
+    ),
+    
+    ## parent_monitor_tot_bar T3-5
+    parent_monitor_tot_bar_cv_mean3to5 = mean(
+      c(
+        parent_monitor_tot_bar_3,
+        parent_monitor_tot_bar_4,
+        parent_monitor_tot_bar_5
+      ),
+      na.rm = TRUE
+    ),
+  )
+
+covid_wide <- covid_wide %>%
+  rowwise() %>%
+  dplyr::mutate(## worries about money T3, T4, T5
+    money_cv_mean3to6 = mean(c(
+      money_cv_3, money_cv_4, money_cv_5, money_cv_6
+    ), na.rm = TRUE))
+
+covid_wide <- covid_wide %>%
+dplyr::mutate(across(c(
+  fam_wage_loss_cv_mean12,
+  sex_br,
+  race_white,
+  race_black,
+  race_asian,
+  ethnicity_hisp
+)))
+
+# writexl::write_xlsx(covid_wide, "~/Documents/KateTran_Github/ABCD_covid/outputs_Kate/mediation_dat_final.xlsx")
+```
+
+# 1. MEDIATOR WORRIES ABOUT MONEY
+
+```{r}
+mod_mean_money <- '
+money_cv_mean3to6 ~ a*fam_wage_loss_cv_mean12
+felt_sad_cv_raw_tot_bar_7 ~ c*fam_wage_loss_cv_mean12 + b*money_cv_mean3to6
+ind := a*b
+total := c + a*b
+'
+
+med_mod_mean_money <- lavaan::sem(mod_mean_money,
+                                  data = covid_wide,
+                                  se = "bootstrap",
+                                  bootstrap = 500)
+
+med_mod_mean_money_sum <- parameterEstimates(
+  med_mod_mean_money,
+  ci = TRUE,
+  level = 0.95,
+  boot.ci.type = "perc"
+)
+
+
+labels_mean_money = list(
+  fam_wage_loss_cv_mean12 = "Wage loss T1-2 \n (independent variable)",
+  felt_sad_cv_raw_tot_bar_7 = "Mental health problem T7 \n (outcome)",
+  money_cv_mean3to6 = "Worries about money T3-4-5-6 \n (mediator)"
+)
+
+plot_mean_money <- lavaanPlot(
+  model = med_mod_mean_money,
+  labels = labels_mean_money,
+  node_options = list(
+    shape = "box",
+    fontname = "Arial",
+    color = "blue4"
+  ),
+  edge_options = list(color = "darkolivegreen"),
+  coefs = TRUE,
+  # stand = TRUE,
+  covs = TRUE,
+  digits = 3,
+  stars = "regress"
+)
+
+save_png(
+  plot_mean_money,
+  "~/Documents/KateTran_Github/ABCD_covid/plots/plot_mean_money.png"
+)
+```
+
+### Simple linear regression with covariates
+
+```{r}
+model_1_sl_cov <- '
+felt_sad_cv_raw_tot_bar_7 ~ 1 + fam_wage_loss_cv_mean12 + age_mean_cv + sex_br + race_white + race_black + race_asian + ethnicity_hisp
+'
+
+med_model_1_sl_cov <- lavaan::sem(model_1_sl_cov,
+                                  data = covid_wide,
+                                  se = "bootstrap",
+                                  bootstrap = 500)
+
+med_model_1_sl_cov_sum <- parameterEstimates(
+  med_model_1_sl_cov,
+  ci = TRUE,
+  level = 0.95,
+  boot.ci.type = "perc"
+)
+
+labels_1_sl_cov = list(fam_wage_loss_cv_mean12 = "Wage loss T1-2 \n (independent variable)",
+                       felt_sad_cv_raw_tot_bar_7 = "Mental health problem T7 \n (outcome)")
+
+plot_1_sl_cov <- lavaanPlot(
+  model = med_model_1_sl_cov,
+  labels = labels_1_sl_cov,
+  node_options = list(
+    shape = "box",
+    fontname = "Arial",
+    color = "blue4"
+  ),
+  edge_options = list(color = "darkolivegreen"),
+  coefs = TRUE,
+  # stand = TRUE,
+  covs = TRUE,
+  digits = 3,
+  stars = "regress"
+)
+
+save_png(plot_1_sl_cov,
+         "~/Documents/KateTran_Github/ABCD_covid/plots/plot_1_sl_cov.png")
+```
+
+
+```{r}
+model_1_sl_cov_p <- '
+felt_sad_cv_raw_tot_bar_7 ~ 1 + fam_wage_loss_cv_mean12 + age_mean_cv + sex_br + race_white + race_black + race_asian + ethnicity_hisp +
+household_income + parents_avg_edu + General_p_with_sui + dim_y_ss_mean
+'
+
+med_model_1_sl_cov_p <- lavaan::sem(model_1_sl_cov_p,
+                                    data = covid_wide,
+                                    se = "bootstrap",
+                                    bootstrap = 500)
+
+med_model_1_sl_cov_p_sum <- parameterEstimates(
+  med_model_1_sl_cov_p,
+  ci = TRUE,
+  level = 0.95,
+  boot.ci.type = "perc"
+)
+
+labels_1_sl_cov_p = list(fam_wage_loss_cv_mean12 = "Wage loss T1-2 \n (independent variable)",
+                         felt_sad_cv_raw_tot_bar_7 = "Mental health problem T7 \n (outcome)")
+
+plot_1_sl_cov_p <- lavaanPlot(
+  model = med_model_1_sl_cov_p,
+  labels = labels_1_sl_cov,
+  node_options = list(
+    shape = "box",
+    fontname = "Arial",
+    color = "blue4"
+  ),
+  edge_options = list(color = "darkolivegreen"),
+  coefs = TRUE,
+  # stand = TRUE,
+  covs = TRUE,
+  digits = 3,
+  stars = "regress"
+)
+
+save_png(
+  plot_1_sl_cov_p,
+  "~/Documents/KateTran_Github/ABCD_covid/plots/plot_1_sl_cov_p.png"
+)
+```
+
+For the next analysis, DV will be at time point 7 (cannot do mean 5&7 because no observations of conflict at T4)
+
+# 2. MEDIATOR FAMILIES' PROBLEMS
+
+### M1: Family conflict
+
+```{r}
+mod_mean_M1 <- '
+increased_conflict_cv_mean35 ~ a*fam_wage_loss_cv_mean12
+felt_sad_cv_raw_tot_bar_7 ~ c*fam_wage_loss_cv_mean12 + b*increased_conflict_cv_mean35
+ind := a*b
+total := c + a*b
+'
+
+med_mod_mean_M1 <- lavaan::sem(mod_mean_M1,
+                               data = covid_wide,
+                               se = "bootstrap",
+                               bootstrap = 500)
+
+med_mod_mean_M1_sum <- parameterEstimates(
+  med_mod_mean_M1,
+  ci = TRUE,
+  level = 0.95,
+  boot.ci.type = "perc"
+)
+
+labels_mean_M1 = list(
+  fam_wage_loss_cv_mean12 = "Wage loss T1-2 \n (independent variable)",
+  felt_sad_cv_raw_tot_bar_7 = "Mental health problem T7 \n (outcome)",
+  increased_conflict_cv_mean35 = "Family conflict T3-5 \n (mediator)"
+)
+
+plot_mean_M1 <- lavaanPlot(
+  model = med_mod_mean_M1,
+  labels = labels_mean_M1,
+  node_options = list(
+    shape = "box",
+    fontname = "Arial",
+    color = "blue4"
+  ),
+  edge_options = list(color = "darkolivegreen"),
+  coefs = TRUE,
+  # stand = TRUE,
+  covs = TRUE,
+  digits = 3,
+  stars = "regress"
+)
+
+save_png(
+  plot_mean_M1,
+  "~/Documents/KateTran_Github/ABCD_covid/plots/mediator_parentsconflict/plot_mean_M1.png"
+)
+```
+
+
+### M2: Parent monitoring
+
+```{r}
+mod_mean_M2 <- '
+parent_monitor_tot_bar_cv_mean3to6 ~ a*fam_wage_loss_cv_mean12
+felt_sad_cv_raw_tot_bar_7 ~ c*fam_wage_loss_cv_mean12 + b*parent_monitor_tot_bar_cv_mean3to6
+ind := a*b
+total := c + a*b
+'
+
+med_mod_mean_M2 <- lavaan::sem(mod_mean_M2,
+                               data = covid_wide,
+                               se = "bootstrap",
+                               bootstrap = 500)
+
+med_mod_mean_M2_sum <- parameterEstimates(
+  med_mod_mean_M2,
+  ci = TRUE,
+  level = 0.95,
+  boot.ci.type = "perc"
+)
+
+labels_mean_M2 = list(
+  fam_wage_loss_cv_mean12 = "Wage loss T1-2 \n (independent variable)",
+  felt_sad_cv_raw_tot_bar_7 = "Mental health problem T7 \n (outcome)",
+  parent_monitor_tot_bar_cv_mean3to6 = "Parent monitoring T3-4-5-6 \n (mediator)"
+)
+
+plot_mean_M2 <- lavaanPlot(
+  model = med_mod_mean_M2,
+  labels = labels_mean_M2,
+  node_options = list(
+    shape = "box",
+    fontname = "Arial",
+    color = "blue4"
+  ),
+  edge_options = list(color = "darkolivegreen"),
+  coefs = TRUE,
+  # stand = TRUE,
+  covs = TRUE,
+  digits = 3,
+  stars = "regress"
+)
+
+save_png(
+  plot_mean_M2,
+  "~/Documents/KateTran_Github/ABCD_covid/plots/mediator_parentsconflict/plot_mean_M2.png"
+)
+```
+
+
+### M3: Parent workplace conflict
+
+```{r}
+mod_mean_M3 <- '
+work_ability_cv_mean3to6 ~ a*fam_wage_loss_cv_mean12
+felt_sad_cv_raw_tot_bar_7 ~ c*fam_wage_loss_cv_mean12 + b*work_ability_cv_mean3to6
+ind := a*b
+total := c + a*b
+'
+
+med_mod_mean_M3 <- lavaan::sem(mod_mean_M3,
+                               data = covid_wide,
+                               se = "bootstrap",
+                               bootstrap = 500)
+
+med_mod_mean_M3_sum <- parameterEstimates(
+  med_mod_mean_M3,
+  ci = TRUE,
+  level = 0.95,
+  boot.ci.type = "perc"
+)
+
+labels_mean_M3 = list(
+  fam_wage_loss_cv_mean12 = "Wage loss T1-2 \n (independent variable)",
+  felt_sad_cv_raw_tot_bar_7 = "Mental health problem T7 \n (outcome)",
+  work_ability_cv_mean3to6 = "Parent workplace conflict T3-4-5-6 \n (mediator)"
+)
+
+plot_mean_M3 <- lavaanPlot(
+  model = med_mod_mean_M3,
+  labels = labels_mean_M3,
+  node_options = list(
+    shape = "box",
+    fontname = "Arial",
+    color = "blue4"
+  ),
+  edge_options = list(color = "darkolivegreen"),
+  coefs = TRUE,
+  # stand = TRUE,
+  covs = TRUE,
+  digits = 3,
+  stars = "regress"
+)
+
+save_png(
+  plot_mean_M3,
+  "~/Documents/KateTran_Github/ABCD_covid/plots/mediator_parentsconflict/plot_mean_M3.png"
+)
+```
+
+### M1 + M2 + M3 in the same plot
+
+```{r}
+model_1_mean_M1M2M3 <- '
+increased_conflict_cv_mean35 ~ fc1*fam_wage_loss_cv_mean12
+parent_monitor_tot_bar_cv_mean3to6 ~ pm1*fam_wage_loss_cv_mean12
+work_ability_cv_mean3to6 ~ pwc1*fam_wage_loss_cv_mean12
+felt_sad_cv_raw_tot_bar_7 ~ mf*fam_wage_loss_cv_mean12 + fc2*increased_conflict_cv_mean35 + pm2*parent_monitor_tot_bar_cv_mean3to6 + pwc2*work_ability_cv_mean3to6
+increased_conflict_cv_mean35 ~~ parent_monitor_tot_bar_cv_mean3to6
+parent_monitor_tot_bar_cv_mean3to6 ~~ work_ability_cv_mean3to6
+work_ability_cv_mean3to6 ~~ increased_conflict_cv_mean35
+indM1 := fc1*fc2
+indM2 := pm1*pm2
+indM3 := pwc1*pwc2
+totalindirecteffect := fc1*fc2 + pm1*pm2 + pwc1*pwc2
+totaleffect := mf + fc1*fc2 + pm1*pm2 + pwc1*pwc2
+'
+
+med_model_1_mean_M1M2M3 <- lavaan::sem(
+  model_1_mean_M1M2M3,
+  data = covid_wide,
+  se = "bootstrap",
+  bootstrap = 500
+)
+
+med_model_1_mean_M1M2M3_sum <-
+  parameterEstimates(
+    med_model_1_mean_M1M2M3,
+    ci = TRUE,
+    level = 0.95,
+    boot.ci.type = "perc"
+  )
+
+
+labels_1_mean_M1M2M3 = list(
+  increased_conflict_cv_mean35 = "Parent conflict T3-5 \n (mediator 1)",
+  fam_wage_loss_cv_mean12 = "Wage loss T1-2 \n (independent variable)",
+  parent_monitor_tot_bar_cv_mean3to6 = "Parent monitoring T3-4-5-6 \n (mediator 2)",
+  work_ability_cv_mean3to6 = "Parent-workplace conflict T3-4-5-6 \n (mediator 3)",
+  felt_sad_cv_raw_tot_bar_7 = "Mental health problem T7 \n (outcome)"
+)
+
+plot_mean_M1M2M3 <- lavaanPlot(
+  model = med_model_1_mean_M1M2M3,
+  labels = labels_1_mean_M1M2M3,
+  node_options = list(
+    shape = "box",
+    fontname = "Arial",
+    color = "blue4"
+  ),
+  edge_options = list(color = "darkolivegreen"),
+  coefs = TRUE,
+  # stand = TRUE,
+  # covs = TRUE,
+  digits = 3,
+  stars = "regress"
+)
+
+save_png(
+  plot_mean_M1M2M3,
+  "~/Documents/KateTran_Github/ABCD_covid/plots/mediator_parentsconflict/plot_mean_M1M2M3.png"
+)
+```
+
+### M1 + M2 + M3 + M4 (worries about money) in the same plot
+
+```{r}
+# Add worries about money
+model_1_mean_M1M2M3M4 <- '
+increased_conflict_cv_mean35 ~ fc1*fam_wage_loss_cv_mean12
+parent_monitor_tot_bar_cv_mean3to6 ~ pm1*fam_wage_loss_cv_mean12
+work_ability_cv_mean3to6 ~ pwc1*fam_wage_loss_cv_mean12
+money_cv_mean3to6 ~ mw1*fam_wage_loss_cv_mean12
+felt_sad_cv_raw_tot_bar_7 ~ mf*fam_wage_loss_cv_mean12 + fc2*increased_conflict_cv_mean35 + pm2*parent_monitor_tot_bar_cv_mean3to6 +
+pwc2*work_ability_cv_mean3to6 + mw2*money_cv_mean3to6
+increased_conflict_cv_mean35 ~~ parent_monitor_tot_bar_cv_mean3to6
+parent_monitor_tot_bar_cv_mean3to6 ~~ work_ability_cv_mean3to6
+work_ability_cv_mean3to6 ~~ increased_conflict_cv_mean35
+money_cv_mean3to6 ~~ increased_conflict_cv_mean35
+money_cv_mean3to6 ~~ parent_monitor_tot_bar_cv_mean3to6
+money_cv_mean3to6 ~~ work_ability_cv_mean3to6
+indM1 := fc1*fc2
+indM2 := pm1*pm2
+indM3 := pwc1*pwc2
+indM4 := mw1*mw2
+
+totalindirecteffect := fc1*fc2 + pm1*pm2 + pwc1*pwc2 + mw1*mw2
+totaleffect := mf + fc1*fc2 + pm1*pm2 + pwc1*pwc2 + mw1*mw2
+'
+
+med_model_1_mean_M1M2M3M4 <- lavaan::sem(
+  model_1_mean_M1M2M3M4,
+  data = covid_wide,
+  se = "bootstrap",
+  bootstrap = 500
+)
+
+med_model_1_mean_M1M2M3M4_sum <-
+  parameterEstimates(
+    med_model_1_mean_M1M2M3M4,
+    ci = TRUE,
+    level = 0.95,
+    boot.ci.type = "perc"
+  )
+
+labels_1_mean_M1M2M3M4 = list(
+  increased_conflict_cv_mean35 = "Parent conflict T3-5 \n (mediator 1)",
+  fam_wage_loss_cv_mean12 = "Wage loss T1-2 \n (independent variable)",
+  parent_monitor_tot_bar_cv_mean3to6 = "Parent monitoring T3-4-5-6 \n (mediator 2)",
+  work_ability_cv_mean3to6 = "Parent-workplace conflict T3-4-5-6 \n (mediator 3)",
+  money_cv_mean3to6 = "Worries about money T3-4-5-6 \n (mediator 4)",
+  felt_sad_cv_raw_tot_bar_7 = "Mental health problem T7 \n (outcome)"
+)
+
+plot_mean_M1M2M3M4 <- lavaanPlot(
+  model = med_model_1_mean_M1M2M3M4,
+  labels = labels_1_mean_M1M2M3M4,
+  node_options = list(
+    shape = "box",
+    fontname = "Arial",
+    color = "blue4"
+  ),
+  edge_options = list(color = "darkolivegreen"),
+  coefs = TRUE,
+  # stand = TRUE,
+  # covs = TRUE,
+  digits = 3,
+  stars = "regress"
+)
+
+save_png(
+  plot_mean_M1M2M3M4,
+  "~/Documents/KateTran_Github/ABCD_covid/plots/mediator_parentsconflict/plot_mean_M1M2M3M4.png"
+)
+```
+
+# 3. LONGITUDINAL MEDIATORS
+## 3.1. M1 + M2 + M3
+
+```{r}
+model_2_long_M1M2M3 <- '
+increased_conflict_cv_mean35 ~ fc1*fam_wage_loss_cv_1 + fc2*fam_wage_loss_cv_2
+parent_monitor_tot_bar_cv_mean3to6 ~ pm1*fam_wage_loss_cv_1 + pm2*fam_wage_loss_cv_2
+work_ability_cv_mean3to6 ~ pwc1*fam_wage_loss_cv_1 + pwc2*fam_wage_loss_cv_2
+fam_wage_loss_cv_2 ~ wl1*fam_wage_loss_cv_1
+felt_sad_cv_raw_tot_bar_7 ~ mf*fam_wage_loss_cv_1 + fc3*increased_conflict_cv_mean35 + pm3*parent_monitor_tot_bar_cv_mean3to6 + pwc3*work_ability_cv_mean3to6
+increased_conflict_cv_mean35 ~~ parent_monitor_tot_bar_cv_mean3to6
+parent_monitor_tot_bar_cv_mean3to6 ~~ work_ability_cv_mean3to6
+work_ability_cv_mean3to6 ~~ increased_conflict_cv_mean35
+indM1 := fc1*fc3 + wl1*fc2*fc3
+indM2 := pm1*pm3 + wl1*pm2*pm3
+indM3 := pwc1*pwc3 + wl1*pwc2*pwc3
+totalindirecteffect := fc1*fc3 + wl1*fc2*fc3 + pm1*pm3 + wl1*pm2*pm3 + pwc1*pwc3 + wl1*pwc2*pwc3
+totaleffect := mf + fc1*fc3 + wl1*fc2*fc3 + pm1*pm3 + wl1*pm2*pm3 + pwc1*pwc3 + wl1*pwc2*pwc3
+'
+
+med_model_2_long_M1M2M3 <- lavaan::sem(
+  model_2_long_M1M2M3,
+  data = covid_wide,
+  se = "bootstrap",
+  bootstrap = 500
+)
+
+med_model_2_long_M1M2M3_sum <-
+  parameterEstimates(
+    med_model_2_long_M1M2M3,
+    ci = TRUE,
+    level = 0.95,
+    boot.ci.type = "perc"
+  )
+
+
+labels_long_M1M2M3 = list(
+  increased_conflict_cv_mean35 = "Parent conflict \n (mediator 2)",
+  fam_wage_loss_cv_1 = "Wage loss at T1 \n (independent variable)",
+  fam_wage_loss_cv_2 = "Wage loss at T2 \n (mediator 1)",
+  parent_monitor_tot_bar_cv_mean3to6 = "Parent monitoring T3-4-5-6 \n (mediator 3)",
+  work_ability_cv_mean3to6 = "Parent-workplace conflict T3-4-5-6 \n (mediator 4)",
+  felt_sad_cv_raw_tot_bar_7 = "Mental health problem T7 \n (outcome)"
+)
+
+plot_long_M1M2M3 <- lavaanPlot(
+  model = med_model_2_long_M1M2M3,
+  labels = labels_long_M1M2M3,
+  node_options = list(
+    shape = "box",
+    fontname = "Arial",
+    color = "blue4"
+  ),
+  edge_options = list(color = "darkolivegreen"),
+  coefs = TRUE,
+  # stand = TRUE,
+  # covs = TRUE,
+  digits = 3,
+  stars = "regress"
+)
+
+save_png(
+  plot_long_M1M2M3,
+  "~/Documents/KateTran_Github/ABCD_covid/plots/mediator_longitudinal/plot_long_M1M2M3.png"
+)
+```
+
+
+## 3.2. M1 + M2 + M3 + M4
+
+```{r}
+model_2_long_M1M2M3M4 <- '
+increased_conflict_cv_mean35 ~ fc1*fam_wage_loss_cv_1 + fc2*fam_wage_loss_cv_2
+parent_monitor_tot_bar_cv_mean3to6 ~ pm1*fam_wage_loss_cv_1 + pm2*fam_wage_loss_cv_2
+work_ability_cv_mean3to6 ~ pwc1*fam_wage_loss_cv_1 + pwc2*fam_wage_loss_cv_2
+money_cv_mean3to6 ~ mw1*fam_wage_loss_cv_1 + mw2*fam_wage_loss_cv_2
+fam_wage_loss_cv_2 ~ wl1*fam_wage_loss_cv_1
+felt_sad_cv_raw_tot_bar_7 ~ mf*fam_wage_loss_cv_1 + fc3*increased_conflict_cv_mean35 + pm3*parent_monitor_tot_bar_cv_mean3to6 +
+pwc3*work_ability_cv_mean3to6 + mw3*money_cv_mean3to6
+increased_conflict_cv_mean35 ~~ parent_monitor_tot_bar_cv_mean3to6
+parent_monitor_tot_bar_cv_mean3to6 ~~ work_ability_cv_mean3to6
+work_ability_cv_mean3to6 ~~ increased_conflict_cv_mean35
+money_cv_mean3to6 ~~ increased_conflict_cv_mean35
+money_cv_mean3to6 ~~ parent_monitor_tot_bar_cv_mean3to6
+money_cv_mean3to6 ~~ work_ability_cv_mean3to6
+indM1 := fc1*fc3 + wl1*fc2*fc3
+indM2 := pm1*pm3 + wl1*pm2*pm3
+indM3 := pwc1*pwc3 + wl1*pwc2*pwc3
+indM4 := mw1*mw3 + wl1*mw2*mw3
+totalindirecteffect := fc1*fc3 + wl1*fc2*fc3 + pm1*pm3 + wl1*pm2*pm3 + pwc1*pwc3 + wl1*pwc2*pwc3 + mw1*mw3 + wl1*mw2*mw3
+totaleffect := mf + fc1*fc3 + wl1*fc2*fc3 + pm1*pm3 + wl1*pm2*pm3 + pwc1*pwc3 + wl1*pwc2*pwc3 + mw1*mw3 + wl1*mw2*mw3
+'
+
+med_model_2_long_M1M2M3M4 <- lavaan::sem(
+  model_2_long_M1M2M3M4,
+  data = covid_wide,
+  se = "bootstrap",
+  bootstrap = 500
+)
+
+med_model_2_long_M1M2M3M4_sum <-
+  parameterEstimates(
+    med_model_2_long_M1M2M3M4,
+    ci = TRUE,
+    level = 0.95,
+    boot.ci.type = "perc"
+  )
+
+
+labels_long_M1M2M3M4 = list(
+  increased_conflict_cv_mean35 = "Parent conflict \n (mediator 2)",
+  fam_wage_loss_cv_1 = "Wage loss at T1 \n (independent variable)",
+  fam_wage_loss_cv_2 = "Wage loss at T2 \n (mediator 1)",
+  parent_monitor_tot_bar_cv_mean3to6 = "Parent monitoring T3-4-5-6 \n (mediator 3)",
+  work_ability_cv_mean3to6 = "Parent-workplace conflict T3-4-5-6 \n (mediator 4)",
+  felt_sad_cv_raw_tot_bar_7 = "Mental health problem T7 \n (outcome)",
+  money_cv_mean3to6 = "Worries about money T3-4-5-6 \n (mediator 5)"
+)
+
+plot_long_M1M2M3M4 <- lavaanPlot(
+  model = med_model_2_long_M1M2M3M4,
+  labels = labels_long_M1M2M3M4,
+  node_options = list(
+    shape = "box",
+    fontname = "Arial",
+    color = "blue4"
+  ),
+  edge_options = list(color = "darkolivegreen"),
+  coefs = TRUE,
+  # stand = TRUE,
+  # covs = TRUE,
+  digits = 3,
+  stars = "regress"
+)
+
+save_png(
+  plot_long_M1M2M3M4,
+  "~/Documents/KateTran_Github/ABCD_covid/plots/mediator_longitudinal/plot_long_M1M2M3M4.png"
+)
+```
