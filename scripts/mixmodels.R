@@ -15,6 +15,10 @@ family_ <- read.csv("outputs/family.csv") %>% dplyr::select(-eventname)
 demo_baseline <- read.csv("outputs/demographics_baseline.csv")
 p_factor_with_sui <-
   read_csv("~/Box Sync/2-ABCD Data Files/Projects/exposome/3.0/data/p factor scores/ABCD_psychopathology_bifactor_scores_23March2021_WITH_SUICIDALITY.csv")
+site <- read.csv("~/Documents/KateTran_Github/ABCD_covid/outputs_Kate/site.csv") %>% 
+  dplyr::filter(eventname == "1_year_follow_up_y_arm_1") %>% 
+  dplyr::select(src_subject_id, site_id_l_br)
+
 
 demo_baseline[,c("interview_date" ,"interview_age" ,"eventname" )] <- NULL
 
@@ -32,8 +36,8 @@ dataset$felt_sad_cv_raw_tot_bar_Z <- as.vector(scale(dataset$felt_sad_cv_raw_tot
 dataset$rel_family_id <- dataset$rel_family_id + 1
 dataset$timepoint <- sub("cv", "" ,dataset$timepoint )
 
-dataset <- merge(dataset,p_factor_with_sui, all.x = T)
-
+dataset <- merge(dataset, p_factor_with_sui, all.x = T)
+dataset <- merge(dataset, site, all.x = T)
 # Add columns
 dataset$morning_bedtime_routine <-
   rowMeans(dataset[, grep("routine", colnames(dataset))], na.rm = T)
@@ -77,7 +81,8 @@ dataset <- dataset %>%
       went_to_school_cv,
       enjoy_school_y_cv,
       child_tested_cv,
-      fam_under_poverty_line
+      fam_under_poverty_line,
+      site_id_l_br
     ),
     as.factor
   )) %>%
@@ -319,3 +324,39 @@ r.squaredGLMM(model_5_DV)
 # delta     0.1275978 0.6184534
 # lognormal 0.1292408 0.6264168
 # trigamma  0.1258846 0.6101498
+
+
+
+
+# ADD SITE AS A COVARIATE
+################### NO INTERACTIONS - ADD SITE ################### 
+# OUTCOME 1: WAGE LOSS + SITE
+
+## Model 2 (+ P-factor) [MAIN MODEL] + SITE
+model_2_DV_site <- glmmPQL(felt_sad_cv_raw_tot_bar ~ fam_wage_loss_cv*timepoint + 
+                             age + sex_br + race_white + race_black + ethnicity_hisp + household_income + parents_avg_edu + General_p_with_sui + site_id_l_br, 
+                           ~ 1 | rel_family_id/src_subject_id, family = quasipoisson(),
+                           data = dataset, verbose = FALSE)
+
+comb_1_site <- tab_model(model_2_DV, model_2_DV_site)
+
+r.squaredGLMM(model_2_DV_site)
+# R2m       R2c
+# delta     0.1324887 0.6280796
+# lognormal 0.1341564 0.6359859
+# trigamma  0.1307483 0.6198291
+
+
+# OUTCOME: FINANCIAL WORRIES
+model_2_fw_DV_site <- glmmPQL(felt_sad_cv_raw_tot_bar ~ Residualized_money_cv*timepoint + 
+                                age + sex_br + race_white + race_black + ethnicity_hisp + household_income + parents_avg_edu + General_p_with_sui + site_id_l_br, 
+                              ~ 1 | rel_family_id/src_subject_id, family = quasipoisson(),
+                              data = dataset, verbose = FALSE)
+
+comb_2_site <- tab_model(model_2_fw_DV, model_2_fw_DV_site)
+
+r.squaredGLMM(model_2_fw_DV_site)
+# R2m       R2c
+# delta     0.1474327 0.6235586
+# lognormal 0.1493061 0.6314820
+# trigamma  0.1454785 0.6152937
