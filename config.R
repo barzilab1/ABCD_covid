@@ -4,7 +4,7 @@
 
 #path to abcd Restricted Access folder
 main_abcd_path = "~/Box Sync/"
-abcd_box_path = "2-ABCD Data Files/" #"2. Barzi Lab - Restricted Access/2-ABCD Data Files/"
+abcd_box_path = "2. Barzi Lab - Restricted Access/2-ABCD Data Files/"
 abcd_data_path = "ABCD data/"
 prs_box_path = "PTSD_Barzilay/"
 abcd_version = "4.0/"
