@@ -29,5 +29,5 @@ acspsw03 = acspsw03[acspsw03$eventname == "baseline_year_1_arm_1",c("src_subject
 
 summary(acspsw03)
 
-write.csv(acspsw03, "outputs/family.csv", ,row.names=F, na = "")
+write.csv(acspsw03, "outputs/family.csv", row.names=F, na = "")
 

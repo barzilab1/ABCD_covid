@@ -1,8 +1,8 @@
 library(psych)
 library(plyr)
 
-source("~/Documents/KateTran_Github/ABCD_covid/config.R")
-source("~/Documents/KateTran_Github/ABCD_covid/data_scripts_Kate/utility_fun.R")
+source("config.R")
+source("utility_fun.R")
 
 
 covidy_r1 = load_instrument("yabcdcovid19questionnaire01",abcd_covid_r1_files_path)
@@ -99,5 +99,5 @@ covidy_long = covidy[,c("src_subject_id", "timepoint", "interview_date", "interv
                         grep("binary|mj_use|pstr|mental|parent_monitor|strle|su_total_cv|parent_monitor_tot_bar", colnames(covidy), value = T),
                         exposures)]
 
-write.csv(covidy_long, "~/Documents/KateTran_Github/ABCD_covid/outputs_Kate/covidy_long.csv", row.names=F, na = "")
+write.csv(covidy_long, "outputs/covidy_long.csv", row.names=F, na = "")
 
