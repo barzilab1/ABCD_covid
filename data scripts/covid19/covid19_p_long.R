@@ -1,8 +1,8 @@
 library(psych)
 library(plyr)
 
-source("~/Documents/KateTran_Github/ABCD_covid/data_scripts_Kate/config.R")
-source("~/Documents/KateTran_Github/ABCD_covid/data_scripts_Kate/utility_fun.R")
+source("../config.R")
+source("../utility_fun.R")
 
 
 covidp_r1 = load_instrument("pabcdcovid19questionnaire01",abcd_covid_r1_files_path)
@@ -46,7 +46,7 @@ covidp$school_close_spring_2020_cv = covidp$school_close_cv -1
 covidp$went_to_school_cv = covidp$went_to_school_cv-1
 
 
-write.csv(covidp, "~/Documents/KateTran_Github/ABCD_covid/outputs_Kate/covidp_long.csv", row.names=F, na = "")
+write.csv(covidp, "../outputs/covidp_long.csv", row.names=F, na = "")
 
 
 
