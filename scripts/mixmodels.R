@@ -8,17 +8,19 @@ library(dplyr)
 library(modelr)
 library(Hmisc)
 
+
+source("../config.R")
+
+
 # Create data set
 covidp_long <- read.csv("outputs/covidp_long.csv")
 covidy_long <- read.csv("outputs/covidy_long.csv")
 family_ <- read.csv("outputs/family.csv") %>% dplyr::select(-eventname)
 demo_baseline <- read.csv("outputs/demographics_baseline.csv")
-p_factor_with_sui <-
-  read_csv("~/Box Sync/2-ABCD Data Files/Projects/exposome/3.0/data/p factor scores/ABCD_psychopathology_bifactor_scores_23March2021_WITH_SUICIDALITY.csv")
-site <- read.csv("~/Documents/KateTran_Github/ABCD_covid/outputs_Kate/site.csv") %>% 
+p_factor_with_sui <- read_csv(paste0(p_factor_files_path, "ABCD_psychopathology_bifactor_scores_23March2021_WITH_SUICIDALITY.csv"))
+site <- read.csv("../outputs/site.csv") %>% 
   dplyr::filter(eventname == "1_year_follow_up_y_arm_1") %>% 
   dplyr::select(src_subject_id, site_id_l_br)
-
 
 demo_baseline[,c("interview_date" ,"interview_age" ,"eventname" )] <- NULL
 
@@ -32,32 +34,24 @@ dataset <- merge(dataset,family_, all.x = T )
 dataset <- merge(dataset,demo_baseline, all.x = T )
 
 
-dataset$felt_sad_cv_raw_tot_bar_Z <- as.vector(scale(dataset$felt_sad_cv_raw_tot_bar))
 dataset$rel_family_id <- dataset$rel_family_id + 1
 dataset$timepoint <- sub("cv", "" ,dataset$timepoint )
 
 dataset <- merge(dataset, p_factor_with_sui, all.x = T)
 dataset <- merge(dataset, site, all.x = T)
+
 # Add columns
-dataset$morning_bedtime_routine <-
-  rowMeans(dataset[, grep("routine", colnames(dataset))], na.rm = T)
-dataset <-
-  add_residuals(dataset, lm(money_cv ~ worry_y_cv, data = dataset), var = "Residualized_money_cv")
+dataset$morning_bedtime_routine <- rowMeans(dataset[, grep("routine", colnames(dataset))], na.rm = T)
+dataset <- add_residuals(dataset, lm(money_cv ~ worry_y_cv, data = dataset), var = "Residualized_money_cv")
 dataset$su_total_cv_binary <- ifelse(dataset$su_total_cv == 0, 0, 1)
 
 
 dataset <- dataset %>%
   dplyr::mutate(
     fam_under_poverty_line = case_when(
-      household_income == 1 |
-        household_income == 2 |
-        household_income == 3 |
-        household_income == 4 ~ 1,
-      household_income == 6 |
-        household_income == 7 |
-        household_income == 8 |
-        household_income == 9 |
-        household_income == 10 ~ 0,
+      # group 5: half above poverty line, half below --> NA
+      household_income <= 4 ~ 1,
+      household_income >= 6 ~ 0,
       TRUE ~ NA_real_
     )
   )
