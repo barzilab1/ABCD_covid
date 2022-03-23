@@ -9,7 +9,7 @@ library(modelr)
 library(Hmisc)
 
 
-source("../config.R")
+source("config.R")
 
 
 # Create data set
