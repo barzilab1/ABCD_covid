@@ -96,58 +96,23 @@ covid_wide <- merge(covid_wide, p_factor_with_sui, all.x = T)
 ```{r}
 covid_wide <- covid_wide %>%
   dplyr::select(
+    src_subject_id,
     # IV
-    fam_wage_loss_cv_1,
-    fam_wage_loss_cv_2,
-    fam_wage_loss_cv_3,
-    fam_wage_loss_cv_4,
-    fam_wage_loss_cv_5,
-    fam_wage_loss_cv_6,
-    fam_wage_loss_cv_7,
+    contains("fam_wage_loss_cv"),
     # M
     increased_conflict_cv_1,
     increased_conflict_cv_3,
     increased_conflict_cv_5,
     # M
-    work_ability_cv_1,
-    work_ability_cv_2,
-    work_ability_cv_3,
-    work_ability_cv_4,
-    work_ability_cv_5,
-    work_ability_cv_6,
-    work_ability_cv_7,
+    contains("work_ability_cv"),
     # M
-    parent_monitor_tot_bar_1,
-    parent_monitor_tot_bar_2,
-    parent_monitor_tot_bar_3,
-    parent_monitor_tot_bar_4,
-    parent_monitor_tot_bar_5,
-    parent_monitor_tot_bar_6,
-    parent_monitor_tot_bar_7,
+    contains("parent_monitor_tot_bar"),
     # DV felt_sad_cv_raw_tot_bar_Z
-    felt_sad_cv_raw_tot_bar_1,
-    felt_sad_cv_raw_tot_bar_2,
-    felt_sad_cv_raw_tot_bar_3,
-    felt_sad_cv_raw_tot_bar_4,
-    felt_sad_cv_raw_tot_bar_5,
-    felt_sad_cv_raw_tot_bar_6,
-    felt_sad_cv_raw_tot_bar_7,
-    ## money worries
-    money_cv_1,
-    money_cv_2,
-    money_cv_3,
-    money_cv_4,
-    money_cv_5,
-    money_cv_6,
-    money_cv_7,
-    ## discrimination
-    dim_y_ss_mean_1,
-    dim_y_ss_mean_2,
-    dim_y_ss_mean_3,
-    dim_y_ss_mean_4,
-    dim_y_ss_mean_5,
-    dim_y_ss_mean_6,
-    dim_y_ss_mean_7,
+    contains("felt_sad_cv_raw_tot_bar"),
+    # money worries
+    contains("money_cv"),
+    # discrimination
+    contains("dim_y_ss"),
     # Covariates
     sex_br,
     race_white,
