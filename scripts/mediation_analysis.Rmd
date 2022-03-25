@@ -97,23 +97,21 @@ covid_wide <- merge(covid_wide, p_factor_with_sui, all.x = T)
 covid_wide <- covid_wide %>%
   dplyr::select(
     src_subject_id,
-    # IV
-    contains("fam_wage_loss_cv"),
-    # M
+    contains(
+      c(
+        "fam_wage_loss_cv",
+        "work_ability_cv",
+        "parent_monitor_tot_bar",
+        "felt_sad_cv_raw_tot_bar",
+        "money_cv",
+        "dim_y_ss",
+        "mean",
+        "interview_age"
+      )
+    ),
     increased_conflict_cv_1,
     increased_conflict_cv_3,
     increased_conflict_cv_5,
-    # M
-    contains("work_ability_cv"),
-    # M
-    contains("parent_monitor_tot_bar"),
-    # DV felt_sad_cv_raw_tot_bar_Z
-    contains("felt_sad_cv_raw_tot_bar"),
-    # money worries
-    contains("money_cv"),
-    # discrimination
-    contains("dim_y_ss"),
-    # Covariates
     sex_br,
     race_white,
     race_black,
@@ -121,14 +119,6 @@ covid_wide <- covid_wide %>%
     ethnicity_hisp,
     household_income,
     parents_avg_edu,
-    contains("mean"),
-    interview_age_1,
-    interview_age_2,
-    interview_age_3,
-    interview_age_4,
-    interview_age_5,
-    interview_age_6,
-    interview_age_7,
     # p_factor
     General_p_with_sui
   )
