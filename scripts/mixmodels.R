@@ -1,6 +1,5 @@
 # Library
 library(lme4)
-library(MASS)
 library(MuMIn)
 library(sjPlot)
 library(readr)
@@ -98,259 +97,163 @@ dataset <- dataset %>%
 ################### NO INTERACTIONS ################### 
 # OUTCOME 1: WAGE LOSS
 ## Model 1 (+ pre-covid SES)
-model_1_DV <- glmmPQL(felt_sad_cv_raw_tot_bar ~ fam_wage_loss_cv*timepoint + 
-                        age + sex_br + race_white + race_black + ethnicity_hisp + household_income + parents_avg_edu, 
-                      ~ 1 | rel_family_id/src_subject_id, family = quasipoisson(),
+model_1_DV <- lmer(scale(felt_sad_cv_raw_tot_bar) ~ fam_wage_loss_cv + timepoint + 
+                        scale(age) + sex_br + race_white + race_black + ethnicity_hisp + scale(household_income) + scale(parents_avg_edu) +
+                      (1 | rel_family_id/src_subject_id), 
                       data = dataset, verbose = FALSE)
 
 ## Model 2 (+ P-factor) [MAIN MODEL]
-model_2_DV <- glmmPQL(felt_sad_cv_raw_tot_bar ~ fam_wage_loss_cv*timepoint + 
-                        age + sex_br + race_white + race_black + ethnicity_hisp + household_income + parents_avg_edu + General_p_with_sui, 
-                      ~ 1 | rel_family_id/src_subject_id, family = quasipoisson(),
+model_2_DV <- lmer(scale(felt_sad_cv_raw_tot_bar) ~ fam_wage_loss_cv + timepoint + 
+                        scale(age) + sex_br + race_white + race_black + ethnicity_hisp + scale(household_income) + scale(parents_avg_edu) + General_p_with_sui +
+                      (1 | rel_family_id/src_subject_id), 
                       data = dataset, verbose = FALSE)
 
 ## Model 3 (+ exposome)
-model_3_DV <- glmmPQL(felt_sad_cv_raw_tot_bar ~ fam_wage_loss_cv*timepoint + 
-                        age + sex_br + race_white + race_black + ethnicity_hisp + household_income + parents_avg_edu + General_p_with_sui +
-                        morning_bedtime_routine + screentime_wknd_hr_cv + demo_exercise_cv + parent_monitor_tot_bar + increased_conflict_cv + child_tested_pos_cv + 
-                        fam_isolate_tot_cv + child_separate_cv + school_close_spring_2020_cv, #went_to_school_cv #enjoy_school_y_cv not work
-                      ~ 1 | rel_family_id/src_subject_id, family = quasipoisson(),
+model_3_DV <- lmer(scale(felt_sad_cv_raw_tot_bar) ~ fam_wage_loss_cv + timepoint + 
+                        scale(age) + sex_br + race_white + race_black + ethnicity_hisp + scale(household_income) + scale(parents_avg_edu) + General_p_with_sui +
+                        scale(morning_bedtime_routine) + scale(screentime_wknd_hr_cv) + scale(demo_exercise_cv) + scale(parent_monitor_tot_bar) + scale(increased_conflict_cv) + child_tested_pos_cv + 
+                        scale(fam_isolate_tot_cv) + child_separate_cv + school_close_spring_2020_cv + #went_to_school_cv #enjoy_school_y_cv not work
+                      (1 | rel_family_id/src_subject_id), 
                       data = dataset, verbose = FALSE)
 
 comb_1 <- tab_model(model_1_DV, model_2_DV, model_3_DV)
-
-r.squaredGLMM(model_1_DV)
-# R2m       R2c
-# delta     0.05130253 0.6312130
-# lognormal 0.05194201 0.6390809
-# trigamma  0.05063511 0.6230011
-r.squaredGLMM(model_2_DV)
-# R2m       R2c
-# delta     0.1211565 0.6281227
-# lognormal 0.1226817 0.6360303
-# trigamma  0.1195648 0.6198707
-r.squaredGLMM(model_3_DV)
-# R2m       R2c
-# delta     0.1694682 0.7092143
-# lognormal 0.1706556 0.7141835
-# trigamma  0.1682393 0.7040714
-
+comb_1
 
 # OUTCOME 2: FINANCIAL WORRIES
-model_1_fw_DV <- glmmPQL(felt_sad_cv_raw_tot_bar ~ Residualized_money_cv*timepoint + 
-                           age + sex_br + race_white + race_black + ethnicity_hisp + household_income + parents_avg_edu, 
-                         ~ 1 | rel_family_id/src_subject_id, family = quasipoisson(),
+model_1_fw_DV <- lmer(scale(felt_sad_cv_raw_tot_bar) ~ Residualized_money_cv + timepoint + 
+                           scale(age) + sex_br + race_white + race_black + ethnicity_hisp + scale(household_income) + scale(parents_avg_edu) +
+                         (1 | rel_family_id/src_subject_id), 
                          data = dataset, verbose = FALSE)
 
-model_2_fw_DV <- glmmPQL(felt_sad_cv_raw_tot_bar ~ Residualized_money_cv*timepoint + 
-                           age + sex_br + race_white + race_black + ethnicity_hisp + household_income + parents_avg_edu + General_p_with_sui, 
-                         ~ 1 | rel_family_id/src_subject_id, family = quasipoisson(),
+model_2_fw_DV <- lmer(scale(felt_sad_cv_raw_tot_bar) ~ Residualized_money_cv + timepoint + 
+                           scale(age) + sex_br + race_white + race_black + ethnicity_hisp + scale(household_income) + scale(parents_avg_edu) + General_p_with_sui +
+                         (1 | rel_family_id/src_subject_id), 
                          data = dataset, verbose = FALSE)
 
-model_3_fw_DV <- glmmPQL(felt_sad_cv_raw_tot_bar ~ Residualized_money_cv*timepoint + 
-                           age + sex_br + race_white + race_black + ethnicity_hisp + household_income + parents_avg_edu + General_p_with_sui +
-                           morning_bedtime_routine + screentime_wknd_hr_cv + demo_exercise_cv + parent_monitor_tot_bar + increased_conflict_cv +
-                           child_tested_pos_cv + fam_isolate_tot_cv + child_separate_cv + school_close_spring_2020_cv, 
-                         ~ 1 | rel_family_id/src_subject_id, family = quasipoisson(),
+model_3_fw_DV <- lmer(scale(felt_sad_cv_raw_tot_bar) ~ Residualized_money_cv + timepoint + 
+                           scale(age) + sex_br + race_white + race_black + ethnicity_hisp + scale(household_income) + scale(parents_avg_edu) + General_p_with_sui +
+                           scale(morning_bedtime_routine) + scale(screentime_wknd_hr_cv) + scale(demo_exercise_cv) + scale(parent_monitor_tot_bar) + scale(increased_conflict_cv) +
+                           child_tested_pos_cv + scale(fam_isolate_tot_cv) + child_separate_cv + school_close_spring_2020_cv +
+                         (1 | rel_family_id/src_subject_id), 
                          data = dataset, verbose = FALSE)
 
-model_4_fw_DV <- glmmPQL(felt_sad_cv_raw_tot_bar ~ Residualized_money_cv*timepoint + fam_wage_loss_cv +
-                           age + sex_br + race_white + race_black + ethnicity_hisp + household_income + parents_avg_edu + General_p_with_sui +
-                           morning_bedtime_routine + screentime_wknd_hr_cv + demo_exercise_cv + parent_monitor_tot_bar + increased_conflict_cv +
-                           child_tested_pos_cv + fam_isolate_tot_cv + child_separate_cv + school_close_spring_2020_cv, 
-                         ~ 1 | rel_family_id/src_subject_id, family = quasipoisson(),
+model_4_fw_DV <- lmer(scale(felt_sad_cv_raw_tot_bar) ~ Residualized_money_cv + timepoint + fam_wage_loss_cv +
+                           scale(age) + sex_br + race_white + race_black + ethnicity_hisp + scale(household_income) + scale(parents_avg_edu) + General_p_with_sui +
+                           scale(morning_bedtime_routine) + scale(screentime_wknd_hr_cv) + scale(demo_exercise_cv) + scale(parent_monitor_tot_bar) + scale(increased_conflict_cv) +
+                           child_tested_pos_cv + scale(fam_isolate_tot_cv) + child_separate_cv + school_close_spring_2020_cv +
+                         (1 | rel_family_id/src_subject_id), 
                          data = dataset, verbose = FALSE)
 
 comb_2 <- tab_model(model_1_fw_DV, model_2_fw_DV, model_3_fw_DV, model_4_fw_DV)
-r.squaredGLMM(model_1_fw_DV)
-# R2m       R2c
-# delta     0.06933016 0.6229192
-# lognormal 0.07021349 0.6308557
-# trigamma  0.06840877 0.6146407
-r.squaredGLMM(model_2_fw_DV)
-# R2m       R2c
-# delta     0.1362938 0.6235249
-# lognormal 0.1380260 0.6314498
-# trigamma  0.1344869 0.6152585
-r.squaredGLMM(model_3_fw_DV)
-# R2m       R2c
-# delta     0.1934641 0.7077611
-# lognormal 0.1948237 0.7127351
-# trigamma  0.1920571 0.7026139
-r.squaredGLMM(model_4_fw_DV)
-# R2m       R2c
-# delta     0.1925013 0.7075636
-# lognormal 0.1938551 0.7125396
-# trigamma  0.1911004 0.7024144
-
-
+comb_2
 
 ################### WITH INTERACTIONS ################### 
 
 # OUTCOME 1: WAGE LOSS
-## household_income*fam_wage_loss_cv
-model_1_DV_int <- glmmPQL(felt_sad_cv_raw_tot_bar ~ fam_wage_loss_cv*timepoint + household_income*fam_wage_loss_cv +
-                            age + sex_br + race_white + race_black + ethnicity_hisp + parents_avg_edu + General_p_with_sui, 
-                          ~ 1 | rel_family_id/src_subject_id, family = quasipoisson(),
+## scale(household_income)*fam_wage_loss_cv
+model_1_DV_int <- lmer(scale(felt_sad_cv_raw_tot_bar) ~ fam_wage_loss_cv + timepoint + scale(household_income)*fam_wage_loss_cv +
+                            scale(age) + sex_br + race_white + race_black + ethnicity_hisp + scale(parents_avg_edu) + General_p_with_sui +
+                          (1 | rel_family_id/src_subject_id), 
                           data = dataset, verbose = FALSE)
 
 comb_1_int <- tab_model(model_2_DV, model_1_DV_int)
-
-r.squaredGLMM(model_1_DV_int)
-# R2m       R2c
-# delta     0.1213015 0.6280096
-# lognormal 0.1228292 0.6359191
-# trigamma  0.1197072 0.6197556
-
+comb_1_int
 
 # OUTCOME 2: FINANCIAL WORRIES
-## household_income * Residualized_money_cv
-model_1_fw_DV_int <- glmmPQL(felt_sad_cv_raw_tot_bar ~ Residualized_money_cv*timepoint + household_income*Residualized_money_cv +
-                               age + sex_br + race_white + race_black + ethnicity_hisp + parents_avg_edu + General_p_with_sui, 
-                             ~ 1 | rel_family_id/src_subject_id, family = quasipoisson(),
+## scale(household_income) * Residualized_money_cv
+model_1_fw_DV_int <- lmer(scale(felt_sad_cv_raw_tot_bar) ~ Residualized_money_cv + timepoint + scale(household_income)*Residualized_money_cv +
+                               scale(age) + sex_br + race_white + race_black + ethnicity_hisp + scale(parents_avg_edu) + General_p_with_sui +
+                             (1 | rel_family_id/src_subject_id), 
                              data = dataset, verbose = FALSE)
 
 comb_2_int <- tab_model(model_2_fw_DV, model_1_fw_DV_int)
-r.squaredGLMM(model_1_fw_DV_int)
-# R2m       R2c
-# delta     0.1366673 0.6239468
-# lognormal 0.1384014 0.6318635
-# trigamma  0.1348585 0.6156889
+comb_2_int
 
 ################### SENSITIVITIVE ANALYSIS ################### 
 
 # OUTCOME 3: mental_health_cv
-model_1_mh_DV <- glmmPQL(mental_health_cv ~ fam_wage_loss_cv*timepoint + 
-                           age + sex_br + race_white + race_black + ethnicity_hisp + household_income + parents_avg_edu + General_p_with_sui, 
-                         ~ 1 | rel_family_id/src_subject_id, family = quasipoisson(),
+model_1_mh_DV <- lmer(scale(mental_health_cv) ~ fam_wage_loss_cv + timepoint + 
+                           scale(age) + sex_br + race_white + race_black + ethnicity_hisp + scale(household_income) + scale(parents_avg_edu) + General_p_with_sui +
+                         (1 | rel_family_id/src_subject_id), 
                          data = dataset, verbose = FALSE)
 
-model_2_mh_DV <- glmmPQL(mental_health_cv ~ Residualized_money_cv*timepoint + 
-                           age + sex_br + race_white + race_black + ethnicity_hisp + household_income + parents_avg_edu + General_p_with_sui, 
-                         ~ 1 | rel_family_id/src_subject_id, family = quasipoisson(),
+model_2_mh_DV <- lmer(scale(mental_health_cv) ~ Residualized_money_cv + timepoint + 
+                           scale(age) + sex_br + race_white + race_black + ethnicity_hisp + scale(household_income) + scale(parents_avg_edu) + General_p_with_sui +
+                         (1 | rel_family_id/src_subject_id), 
                          data = dataset, verbose = FALSE)
 
 comb_3 <- tab_model(model_1_mh_DV, model_2_mh_DV)
-
-r.squaredGLMM(model_1_mh_DV)
-# R2m       R2c
-# delta     0.03745182 0.3035925
-# lognormal 0.03808355 0.3087134
-# trigamma  0.03681091 0.2983971
-r.squaredGLMM(model_2_mh_DV)
-# R2m       R2c
-# delta     0.03837507 0.2989958
-# lognormal 0.03903511 0.3041384
-# trigamma  0.03770548 0.2937787
-
+comb_3
 
 # OUTCOME 4: su_total_cv
-model_1_su_DV <- glmmPQL(su_total_cv ~ fam_wage_loss_cv*timepoint + 
-                           age + sex_br + race_white + race_black + ethnicity_hisp + household_income + parents_avg_edu + General_p_with_sui, 
-                         ~ 1 | rel_family_id/src_subject_id, family = quasipoisson(),
+model_1_su_DV <- lmer(scale(su_total_cv) ~ fam_wage_loss_cv + timepoint + 
+                           scale(age) + sex_br + race_white + race_black + ethnicity_hisp + scale(household_income) + scale(parents_avg_edu) + General_p_with_sui +
+                         (1 | rel_family_id/src_subject_id), 
                          data = dataset, verbose = FALSE)
 
-model_2_su_DV <- glmmPQL(su_total_cv ~ Residualized_money_cv*timepoint + 
-                           age + sex_br + race_white + race_black + ethnicity_hisp + household_income + parents_avg_edu + General_p_with_sui, 
-                         ~ 1 | rel_family_id/src_subject_id, family = quasipoisson(),
+model_2_su_DV <- lmer(scale(su_total_cv) ~ Residualized_money_cv + timepoint + 
+                           scale(age) + sex_br + race_white + race_black + ethnicity_hisp + scale(household_income) + scale(parents_avg_edu) + General_p_with_sui +
+                         (1 | rel_family_id/src_subject_id), 
                          data = dataset, verbose = FALSE)
 
 comb_4 <- tab_model(model_1_su_DV, model_2_su_DV)
-
-r.squaredGLMM(model_1_su_DV)
-# R2m       R2c
-# delta     0.01928362 0.9958127
-# lognormal 0.01928556 0.9959128
-# trigamma  0.01928159 0.9957077
-r.squaredGLMM(model_2_su_DV)
-# R2m       R2c
-# delta     0.01981825 0.9959171
-# lognormal 0.01982023 0.9960163
-# trigamma  0.01981618 0.9958128
-
+comb_4
 
 # OUTCOME 5: pstr_cv_raw_tot_bar
-model_1_pstr_DV <- glmmPQL(pstr_cv_raw_tot_bar ~ fam_wage_loss_cv*timepoint + 
-                             age + sex_br + race_white + race_black + ethnicity_hisp + household_income + parents_avg_edu + General_p_with_sui, 
-                           ~ 1 | rel_family_id/src_subject_id, family = quasipoisson(),
+model_1_pstr_DV <- lmer(scale(pstr_cv_raw_tot_bar) ~ fam_wage_loss_cv + timepoint + 
+                             scale(age) + sex_br + race_white + race_black + ethnicity_hisp + scale(household_income) + scale(parents_avg_edu) + General_p_with_sui +
+                           (1 | rel_family_id/src_subject_id), 
                            data = dataset, verbose = FALSE)
 
-model_2_pstr_DV <- glmmPQL(pstr_cv_raw_tot_bar ~ Residualized_money_cv*timepoint + 
-                             age + sex_br + race_white + race_black + ethnicity_hisp + household_income + parents_avg_edu + General_p_with_sui, 
-                           ~ 1 | rel_family_id/src_subject_id, family = quasipoisson(),
+model_2_pstr_DV <- lmer(scale(pstr_cv_raw_tot_bar) ~ Residualized_money_cv + timepoint + 
+                             scale(age) + sex_br + race_white + race_black + ethnicity_hisp + scale(household_income) + scale(parents_avg_edu) + General_p_with_sui +
+                           (1 | rel_family_id/src_subject_id), 
                            data = dataset, verbose = FALSE)
 
 comb_5 <- tab_model(model_1_pstr_DV, model_2_pstr_DV)
-
-r.squaredGLMM(model_1_pstr_DV)
-# R2m       R2c
-# delta     0.08986857 0.5535629
-# lognormal 0.09124681 0.5620524
-# trigamma  0.08843705 0.5447451
-r.squaredGLMM(model_2_pstr_DV)
-# R2m       R2c
-# delta     0.1025289 0.5447774
-# lognormal 0.1041365 0.5533192
-# trigamma  0.1008600 0.5359101
-
-
+comb_5
 
 # EXPOSURES
-model_4_DV <- glmmPQL(felt_sad_cv_raw_tot_bar ~ fam_exp_tot_cv*timepoint + 
-                        age + sex_br + race_white + race_black + ethnicity_hisp + household_income + parents_avg_edu + General_p_with_sui, 
-                      ~ 1 | rel_family_id/src_subject_id, family = quasipoisson(),
+model_4_DV <- lmer(scale(felt_sad_cv_raw_tot_bar) ~ fam_exp_tot_cv + timepoint + 
+                        scale(age) + sex_br + race_white + race_black + ethnicity_hisp + scale(household_income) + scale(parents_avg_edu) + General_p_with_sui +
+                      (1 | rel_family_id/src_subject_id), 
                       data = dataset, verbose = FALSE)
 
-model_5_DV <- glmmPQL(felt_sad_cv_raw_tot_bar ~ child_worried_about_cv*timepoint + 
-                        age + sex_br + race_white + race_black + ethnicity_hisp + household_income + parents_avg_edu + General_p_with_sui, 
-                      ~ 1 | rel_family_id/src_subject_id, family = quasipoisson(),
+model_5_DV <- lmer(scale(felt_sad_cv_raw_tot_bar) ~ child_worried_about_cv + timepoint + 
+                        scale(age) + sex_br + race_white + race_black + ethnicity_hisp + scale(household_income) + scale(parents_avg_edu) + General_p_with_sui +
+                      (1 | rel_family_id/src_subject_id), 
                       data = dataset, verbose = FALSE)
 
 comb_6 <- tab_model(model_4_DV, model_5_DV)
+comb_6
 
-r.squaredGLMM(model_4_DV)
-# R2m       R2c
-# delta     0.1223449 0.6258192
-# lognormal 0.1239019 0.6337837
-# trigamma  0.1207200 0.6175075
-r.squaredGLMM(model_5_DV)
-# R2m       R2c
-# delta     0.1275978 0.6184534
-# lognormal 0.1292408 0.6264168
-# trigamma  0.1258846 0.6101498
-
-
-
-
-# ADD SITE AS A COVARIATE
-################### NO INTERACTIONS - ADD SITE ################### 
+# ADD SITE AS A COVARIATE & AS A RANDOM EFFECTS
 # OUTCOME 1: WAGE LOSS + SITE
 
 ## Model 2 (+ P-factor) [MAIN MODEL] + SITE
-model_2_DV_site <- glmmPQL(felt_sad_cv_raw_tot_bar ~ fam_wage_loss_cv*timepoint + 
-                             age + sex_br + race_white + race_black + ethnicity_hisp + household_income + parents_avg_edu + General_p_with_sui + site_id_l_br, 
-                           ~ 1 | rel_family_id/src_subject_id, family = quasipoisson(),
+model_2_DV_site <- lmer(scale(felt_sad_cv_raw_tot_bar) ~ fam_wage_loss_cv + timepoint + 
+                             scale(age) + sex_br + race_white + race_black + ethnicity_hisp + scale(household_income) + scale(parents_avg_edu) + 
+                          General_p_with_sui + site_id_l_br + (1 | rel_family_id/src_subject_id), 
                            data = dataset, verbose = FALSE)
 
-comb_1_site <- tab_model(model_2_DV, model_2_DV_site)
+model_2_DV_rsite <- lmer(scale(felt_sad_cv_raw_tot_bar) ~ fam_wage_loss_cv + timepoint + 
+                           scale(age) + sex_br + race_white + race_black + ethnicity_hisp + scale(household_income) + scale(parents_avg_edu) + 
+                           General_p_with_sui + (1 | rel_family_id/src_subject_id) + (1 | site_id_l_br), 
+                         data = dataset, verbose = FALSE)
 
-r.squaredGLMM(model_2_DV_site)
-# R2m       R2c
-# delta     0.1324887 0.6280796
-# lognormal 0.1341564 0.6359859
-# trigamma  0.1307483 0.6198291
-
+comb_1_site <- tab_model(model_2_DV, model_2_DV_rsite, model_2_DV_site)
+comb_1_site
 
 # OUTCOME: FINANCIAL WORRIES
-model_2_fw_DV_site <- glmmPQL(felt_sad_cv_raw_tot_bar ~ Residualized_money_cv*timepoint + 
-                                age + sex_br + race_white + race_black + ethnicity_hisp + household_income + parents_avg_edu + General_p_with_sui + site_id_l_br, 
-                              ~ 1 | rel_family_id/src_subject_id, family = quasipoisson(),
+model_2_fw_DV_site <- lmer(scale(felt_sad_cv_raw_tot_bar) ~ Residualized_money_cv + timepoint + 
+                                scale(age) + sex_br + race_white + race_black + ethnicity_hisp + scale(household_income) + scale(parents_avg_edu) + 
+                             General_p_with_sui + site_id_l_br + (1 | rel_family_id/src_subject_id), 
                               data = dataset, verbose = FALSE)
 
-comb_2_site <- tab_model(model_2_fw_DV, model_2_fw_DV_site)
+model_2_fw_DV_rsite <- lmer(scale(felt_sad_cv_raw_tot_bar) ~ Residualized_money_cv + timepoint + 
+                              scale(age) + sex_br + race_white + race_black + ethnicity_hisp + scale(household_income) + scale(parents_avg_edu) + 
+                              General_p_with_sui + (1 | rel_family_id/src_subject_id) + (1 | site_id_l_br), 
+                            data = dataset, verbose = FALSE)
 
-r.squaredGLMM(model_2_fw_DV_site)
-# R2m       R2c
-# delta     0.1474327 0.6235586
-# lognormal 0.1493061 0.6314820
-# trigamma  0.1454785 0.6152937
+comb_2_site <- tab_model(model_2_fw_DV, model_2_fw_DV_rsite, model_2_fw_DV_site)
+comb_2_site
