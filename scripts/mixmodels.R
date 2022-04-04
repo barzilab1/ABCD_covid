@@ -10,15 +10,14 @@ library(Hmisc)
 
 source("config.R")
 
-
 # Create data set
 covidp_long <- read.csv("outputs/covidp_long.csv")
 covidy_long <- read.csv("outputs/covidy_long.csv")
 family_ <- read.csv("outputs/family.csv") %>% dplyr::select(-eventname)
 demo_baseline <- read.csv("outputs/demographics_baseline.csv")
 p_factor_with_sui <- read_csv(paste0(p_factor_files_path, "ABCD_psychopathology_bifactor_scores_23March2021_WITH_SUICIDALITY.csv"))
-demographics_long <- read.csv("../outputs/demographics_long.csv")
-exposome_sum_set <- read.csv("../outputs/exposome_sum_set.csv")
+demographics_long <- read.csv("outputs/demographics_long.csv")
+exposome_sum_set <- read.csv("outputs/exposome_sum_set.csv")
 site <- read.csv("outputs/site.csv") %>% 
   dplyr::filter(eventname == "1_year_follow_up_y_arm_1") %>% 
   dplyr::select(src_subject_id, site_id_l_br)
