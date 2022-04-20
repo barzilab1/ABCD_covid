@@ -36,7 +36,7 @@ sadness_scale = sadness_scale[rowSums(is.na(sadness_scale)) == 0,]
 sadness_scale_wide = reshape(sadness_scale, direction = "wide", idvar = "src_subject_id", timevar = "timepoint", sep = "_")
 
 # include kids with at least 2 time points
-sadness_scale_wide = sadness_scale_wide[rowSums(!is.na(sadness_scale_wide)) > 20,]
+# sadness_scale_wide = sadness_scale_wide[rowSums(!is.na(sadness_scale_wide)) > 20,]
 
 write.csv(file = "outputs/sadness_scale_wide.csv",x = sadness_scale_wide ,row.names=F, na = "")
 
@@ -196,8 +196,7 @@ worry$worry_y_cv_mean = rowMeans(worry[,grep("worry", colnames(worry))], na.rm =
 worry$worried_cv = worry$worried_cv_cv2
 
 
-
-
+covidy_final = merge(sadness_scale_wide, mental_health_wide, all = T)
 
 covidy_final = merge(bedtime,exercise, all = T)
 covidy_final = merge(covidy_final,sadness_scale_wide, all = T)
