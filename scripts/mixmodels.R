@@ -6,10 +6,12 @@ library(readr)
 library(dplyr)
 library(modelr)
 library(Hmisc)
+library(gtsummary)
 
 
 source("config.R")
 
+# save.image("mixedmodels_final_04042020.RData")
 # Create data set
 covidp_long <- read.csv("outputs/covidp_long.csv")
 covidy_long <- read.csv("outputs/covidy_long.csv")
@@ -63,15 +65,22 @@ dataset$timepoint <- sub("cv", "" ,dataset$timepoint )
 # Add columns
 dataset$morning_bedtime_routine <- rowMeans(dataset[, grep("routine", colnames(dataset))], na.rm = T)
 dataset <- add_residuals(dataset, lm(money_cv ~ worry_y_cv, data = dataset), var = "Residualized_money_cv")
-dataset$su_total_cv_binary <- ifelse(dataset$su_total_cv == 0, 0, 1)
 
 
 dataset <- dataset %>%
   dplyr::mutate(
+    age_years = interview_age/12,
+    
     fam_under_poverty_line = case_when(
       # group 5: half above poverty line, half below --> NA
       household_income <= 4 ~ 1,
       household_income >= 6 ~ 0,
+      TRUE ~ NA_real_
+    ),
+    
+    su_total_cv_binary = case_when(
+      su_total_cv > 0 ~ 1,
+      su_total_cv == 0 ~ 0,
       TRUE ~ NA_real_
     )
   )
@@ -110,12 +119,28 @@ dataset <- dataset %>%
       increased_conflict_cv,
       morning_bedtime_routine,
       screentime_wknd_hr_cv,
-      demo_exercise_cv
+      demo_exercise_cv,
+      su_total_cv
     ),
     as.numeric
   ))
 
 # writexl::write_xlsx(dataset, "outputs/mixedmodels_dat_final.xlsx")
+################### Demographic by surveys ###################
+lubridate::mdy(demographics_long$interview_date[demographics_long$eventname == "1_year_follow_up_y_arm_1"]) %>% min()
+lubridate::mdy(demographics_long$interview_date[demographics_long$eventname == "1_year_follow_up_y_arm_1"]) %>% max()
+
+
+# participants, mean age, %female, %white, %black, %hispanic, parent average education, and %under poverty line by timepoint
+dataset %>% dplyr::select(timepoint, age_years, sex_br, race_white, race_black, ethnicity_hisp, parents_avg_edu, fam_under_poverty_line) %>% 
+  tbl_summary(
+    by = timepoint,
+    statistic = list(all_continuous() ~ "{mean} ({sd})",
+                     all_categorical() ~ "{n} / {N} ({p}%)"),
+    digits = all_continuous() ~ 2,
+    missing_text = "(Missing)"
+  ) %>% 
+  add_p()
 
 ################### NO INTERACTIONS ################### 
 # OUTCOME 1: WAGE LOSS
