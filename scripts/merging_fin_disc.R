@@ -2,7 +2,7 @@
 demographics_baseline <- read.csv("outputs/demographics_baseline.csv")
 family <- read.csv("outputs/family.csv")
 site <- read.csv("outputs/site.csv")
-genetics <- read.csv("outputs/genetic.csv")
+genetics <- read.csv("~/Box Sync/2-ABCD Data Files/ABCD data/genetics/genetic.csv")
 
 
 demographics_long <- read.csv("outputs/demographics_long.csv")
@@ -15,8 +15,8 @@ covidy_final <- read_csv("outputs/covidy_final.csv")
 covidp_final <- read_csv("outputs/covidp_final.csv")
 
 
-p_factor <-  read_csv("~/Box Sync/2. Barzi Lab - Restricted Access/2-ABCD Data Files/Projects/exposome/3.0/data/p factor scores/ABCD_psychopathology_bifactor_scores_23March2021.csv")
-p_factor_with_sui <-  read_csv("~/Box Sync/2. Barzi Lab - Restricted Access/2-ABCD Data Files/Projects/exposome/3.0/data/p factor scores/ABCD_psychopathology_bifactor_scores_23March2021_WITH_SUICIDALITY.csv")
+p_factor <-  read_csv("~/Box Sync/2-ABCD Data Files/Projects/exposome/3.0/data/p factor scores/ABCD_psychopathology_bifactor_scores_23March2021.csv")
+p_factor_with_sui <-  read_csv("~/Box Sync/2-ABCD Data Files/Projects/exposome/3.0/data/p factor scores/ABCD_psychopathology_bifactor_scores_23March2021_WITH_SUICIDALITY.csv")
 
 p_factor$src_subject_id = paste0("NDAR_", p_factor$ID)
 p_factor$ID = NULL
@@ -26,7 +26,7 @@ p_factor_with_sui$ID = NULL
 colnames(p_factor_with_sui)[1:7] = paste0(colnames(p_factor_with_sui)[1:7], "_with_sui")
 
 
-sad_scale_cv_trajectories <- read_csv("~/Box Sync/2. Barzi Lab - Restricted Access/2-ABCD Data Files/Projects/covid_2021/data/3.0/ABCD_COVID_Sadness_Classes_4.to.6_11.11.21.csv")
+sad_scale_cv_trajectories <- read_csv("~/Box Sync/2-ABCD Data Files/Projects/covid_2021/data/3.0/ABCD_COVID_Sadness_Classes_4.to.6_11.11.21.csv")
 sad_scale_cv_trajectories = sad_scale_cv_trajectories[,c("subjectkey", "Classes_4", "white", "black", "hisp")]
 colnames(sad_scale_cv_trajectories)[which(colnames(sad_scale_cv_trajectories) == "subjectkey")] = "src_subject_id"
 colnames(sad_scale_cv_trajectories)[which(colnames(sad_scale_cv_trajectories) == "Classes_4")] = "sad_scale_cv_trajectories"
