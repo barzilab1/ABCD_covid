@@ -1,0 +1,200 @@
+---
+title: "Create table 1"
+author: "Kate Tran"
+date: "4/4/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(readr)
+library(gtsummary)
+```
+
+```{r}
+covid_final <- "../outputs/covid_final_added.csv" %>% read_csv() # use this data for table 1
+# covid_final <- "../outputs/covid_final_added_2tp.csv" %>% read_csv() # only include kids with at least 2 time points
+
+covid_final <- covid_final %>%
+  dplyr::mutate(
+    fam_under_poverty_line = case_when(
+      # group 5: half above poverty line, half below --> NA
+      household_income <= 4 ~ 1,
+      household_income >= 6 ~ 0,
+      TRUE ~ NA_real_
+    ),
+    
+    age_mean_cv_yr = age_mean_cv/12,
+    
+    ever_school_close = case_when(
+      school_close_spring_2020_cv == 1 | school_close_fall_2020_cv == 1 ~ 1,
+      school_close_spring_2020_cv == 0 & school_close_fall_2020_cv == 0 ~ 0,
+      TRUE ~ NA_real_
+    ),
+    
+    child_separate_cv = case_when(
+      child_separate_cv_mean > 0 ~ 1,
+      child_separate_cv_mean == 0 ~ 0,
+      TRUE ~ NA_real_
+    ),
+    
+    su_total_cv = case_when(
+      su_total_cv_mean > 0 ~ 1,
+      su_total_cv_mean == 0 ~ 0,
+       TRUE ~ NA_real_
+    ),
+    
+    su_alcohol_binary = case_when(
+      su_alcohol_binary_mean > 0 ~ 1,
+      su_alcohol_binary_mean == 0 ~ 0,
+      TRUE ~ NA_real_
+    ),
+    
+    su_mj_use_past_month_cv = case_when(
+      su_mj_use_past_month_cv_mean > 0 ~ 1,
+      su_mj_use_past_month_cv_mean == 0 ~ 0,
+      TRUE ~ NA_real_
+    ),
+    
+    su_other_cv = case_when(
+      su_other_cv_mean > 0 ~ 1,
+      su_other_cv_mean == 0 ~ 0,
+      TRUE ~ NA_real_
+    )
+  ) 
+
+covid_final <- covid_final %>%
+  mutate(
+    across(
+      c(sex_br,
+        race_white,
+        race_black,
+        race_asian,
+        ethnicity_hisp,
+        fam_under_poverty_line,
+        child_tested_pos_cv,
+        fam_tested_pos_cv,
+        ever_school_close,
+        child_separate_cv,
+        su_alcohol_binary,
+        su_mj_use_past_month_cv,
+        su_other_cv,
+        su_total_cv), 
+      ~ factor(.x, levels = c("0", "1"))))
+
+# write_csv(covid_final, "../outputs/covid_final_added_plus.csv")
+# write_csv(covid_final, "../outputs/covid_final_added_2tp_plus.csv") # only include kids with at least 2 time points
+```
+
+```{r}
+variables <- c(
+  "age_mean_cv_yr",
+  "sex_br",
+  "race_white",
+  "race_black",
+  "race_asian",
+  "ethnicity_hisp",
+  "parents_avg_edu",
+  "fam_under_poverty_line",
+  "money_cv_mean",
+  "child_tested_pos_cv",
+  "fam_tested_pos_cv",
+  "ever_school_close",
+  # "went_to_school_cv", 
+    "fam_isolate_tot_cv_mean",
+  # "child_separate_cv",
+  "sad_cv_raw_tot_bar_mean",
+  "pstr_cv_raw_tot_bar_mean",
+  "mental_health_cv_mean",
+  # "su_alcohol_binary",
+  # "su_mj_use_past_month_cv",
+  # "su_other_cv",
+  "su_total_cv"
+  # "increased_conflict_cv_mean",
+  # "parent_monitor_tot_bar_mean",
+  # "screentime_wknd_hr_cv_mean",
+  # "demo_exercise_cv_mean",
+  # "worry_y_cv_mean",
+  # "work_ability_cv_mean",
+  # "fam_isolate_tot_cv_mean",
+  # "fes_y_ss_fc",
+  # "pmq_y_ss_mean",
+  # "stq_y_total_mean"
+)
+  
+descrip_table <- covid_final %>% 
+  dplyr::select(fam_wage_loss_cv, all_of(variables)) %>% 
+  tbl_summary(
+    by = fam_wage_loss_cv,
+    statistic = list(all_continuous() ~ "{mean} ({sd})",
+                     all_categorical() ~ "{n} ({p}%)"),
+    digits = all_continuous() ~ 2,
+    missing_text = "Missing",
+    include = all_of(variables)
+  ) %>% 
+  modify_header(all_stat_cols() ~ "**{level}**<br>N =  {n} ({style_percent(p)}%)") %>%
+  bold_labels() %>%
+  modify_spanning_header(all_stat_cols() ~ "**Wage loss**") %>% 
+  add_p(list(all_continuous() ~ "t.test", all_categorical() ~ "chisq.test"),
+        pvalue_fun = ~style_pvalue(.x, digits = 3))
+
+descrip_table
+
+# For total
+descrip_table_total <- covid_final %>% 
+  dplyr::select(all_of(variables)) %>% 
+  tbl_summary(
+    statistic = list(all_continuous() ~ "{mean} ({sd})",
+                     all_categorical() ~ "{n} ({p}%)"),
+    digits = all_continuous() ~ 2,
+    missing_text = "Missing",
+    include = all_of(variables)
+  ) %>% 
+  bold_labels()
+
+descrip_table_total
+
+# Wage loss missing
+table(is.na(covid_final$fam_wage_loss_cv)) #1792
+
+descrip_table_NAwageloss <- covid_final %>% 
+  filter(is.na(fam_wage_loss_cv)) %>% 
+  dplyr::select(fam_wage_loss_cv, all_of(variables)) %>% 
+  tbl_summary(
+    statistic = list(all_continuous() ~ "{mean} ({sd})",
+                     all_categorical() ~ "{n} ({p}%)"),
+    digits = all_continuous() ~ 2,
+    missing_text = "Missing",
+    include = all_of(variables)
+  ) %>% 
+  bold_labels()
+
+descrip_table_NAwageloss
+```
+
+# Test for wage loss ~ houldhold income & financial worries ~ hh income
+```{r}
+# Wage loss
+chisq.test(covid_final$household_income, covid_final$fam_wage_loss_cv)
+
+m <- glm(data = covid_final, as.factor(fam_wage_loss_cv) ~ scale(household_income), family = binomial)
+
+library(sjPlot)
+tab_model(m)
+
+# Money worries
+cor.test(covid_final$household_income, covid_final$money_cv_mean)
+summary(lm(data = covid_final, scale(money_cv_mean) ~ scale(household_income)))
+```
+
+
+
+
+
+
+
+
