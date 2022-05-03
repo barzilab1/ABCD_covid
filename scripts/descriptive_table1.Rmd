@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
 library(readr)
 library(gtsummary)
+library(sjPlot)
 ```
 
 ```{r}
@@ -105,7 +106,7 @@ variables <- c(
   "fam_tested_pos_cv",
   "ever_school_close",
   # "went_to_school_cv", 
-    "fam_isolate_tot_cv_mean",
+  "fam_isolate_tot_cv_mean",
   # "child_separate_cv",
   "sad_cv_raw_tot_bar_mean",
   "pstr_cv_raw_tot_bar_mean",
@@ -125,7 +126,7 @@ variables <- c(
   # "pmq_y_ss_mean",
   # "stq_y_total_mean"
 )
-  
+
 descrip_table <- covid_final %>% 
   dplyr::select(fam_wage_loss_cv, all_of(variables)) %>% 
   tbl_summary(
@@ -183,7 +184,6 @@ chisq.test(covid_final$household_income, covid_final$fam_wage_loss_cv)
 
 m <- glm(data = covid_final, as.factor(fam_wage_loss_cv) ~ scale(household_income), family = binomial)
 
-library(sjPlot)
 tab_model(m)
 
 # Money worries
