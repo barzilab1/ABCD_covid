@@ -17,8 +17,7 @@ library(sjPlot)
 ```
 
 ```{r}
-covid_final <- "../outputs/covid_final_added.csv" %>% read_csv() # use this data for table 1
-# covid_final <- "../outputs/covid_final_added_2tp.csv" %>% read_csv() # only include kids with at least 2 time points
+covid_final <- "../outputs/covid_final.csv" %>% read_csv()
 
 covid_final <- covid_final %>%
   dplyr::mutate(
