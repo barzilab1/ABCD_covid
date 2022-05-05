@@ -11,7 +11,6 @@ library(gtsummary)
 
 source("config.R")
 
-# save.image("mixedmodels_final_04042020.RData")
 # Create data set
 covidp_long <- read.csv("outputs/covidp_long.csv")
 covidy_long <- read.csv("outputs/covidy_long.csv")
@@ -19,7 +18,7 @@ family_ <- read.csv("outputs/family.csv") %>% dplyr::select(-eventname)
 demo_baseline <- read.csv("outputs/demographics_baseline.csv")
 p_factor_with_sui <- read_csv(paste0(p_factor_files_path, "ABCD_psychopathology_bifactor_scores_23March2021_WITH_SUICIDALITY.csv"))
 demographics_long <- read.csv("outputs/demographics_long.csv")
-exposome_sum_set <- read.csv("outputs/exposome_sum_set.csv")
+# exposome_sum_set <- read.csv("outputs/exposome_sum_set.csv")
 site <- read.csv("outputs/site.csv") %>% 
   dplyr::filter(eventname == "1_year_follow_up_y_arm_1") %>% 
   dplyr::select(src_subject_id, site_id_l_br)
@@ -28,7 +27,8 @@ p_factor_with_sui$src_subject_id <- paste0("NDAR_", p_factor_with_sui$ID)
 p_factor_with_sui$ID <- NULL
 colnames(p_factor_with_sui)[1:7] <- paste0(colnames(p_factor_with_sui)[1:7], "_with_sui")
 
-IVs <- merge(demographics_long, exposome_sum_set, all = T)
+IVs <- demographics_long
+# IVs <- merge(demographics_long, exposome_sum_set, all = T)
 IVs <- IVs[(IVs$eventname == "1_year_follow_up_y_arm_1"),]
 
 colnames(IVs)[2] <- "interview_date_before_covid"
@@ -125,7 +125,6 @@ dataset <- dataset %>%
     as.numeric
   ))
 
-# writexl::write_xlsx(dataset, "outputs/mixedmodels_dat_final.xlsx")
 ################### Demographic by surveys ###################
 lubridate::mdy(demographics_long$interview_date[demographics_long$eventname == "1_year_follow_up_y_arm_1"]) %>% min()
 lubridate::mdy(demographics_long$interview_date[demographics_long$eventname == "1_year_follow_up_y_arm_1"]) %>% max()
@@ -164,7 +163,7 @@ model_3_DV <- lmer(scale(felt_sad_cv_raw_tot_bar) ~ fam_wage_loss_cv + timepoint
                       (1 | rel_family_id/src_subject_id), 
                       data = dataset, verbose = FALSE)
 
-comb_1 <- tab_model(model_1_DV, model_2_DV, model_3_DV)
+comb_1 <- tab_model(model_1_DV, model_2_DV, model_3_DV, show.intercept = F)
 comb_1
 
 # OUTCOME 2: FINANCIAL WORRIES
@@ -192,7 +191,7 @@ model_4_fw_DV <- lmer(scale(felt_sad_cv_raw_tot_bar) ~ Residualized_money_cv + t
                          (1 | rel_family_id/src_subject_id), 
                          data = dataset, verbose = FALSE)
 
-comb_2 <- tab_model(model_1_fw_DV, model_2_fw_DV, model_3_fw_DV, model_4_fw_DV)
+comb_2 <- tab_model(model_1_fw_DV, model_2_fw_DV, model_3_fw_DV, model_4_fw_DV, show.intercept = F)
 comb_2
 
 ################### WITH INTERACTIONS ################### 

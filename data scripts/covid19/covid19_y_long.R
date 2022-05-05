@@ -82,14 +82,14 @@ covidy$parent_monitor_tot_bar = rowSums(covidy[,parents_monitor])
   
 
 ###### stressful life event 
-stressful_events = grep("strle", colnames(covidy), value = T)
-
-# check if the variables can be combined
-xcor <- polychoric(covidy[ ,stressful_events])$rho
-VSS.scree(xcor)
-eigen(xcor)$values[1]/eigen(xcor)$values[2]
-
-covidy$strle_tot_bar = rowSums(covidy[,stressful_events])
+# stressful_events = grep("strle", colnames(covidy), value = T)
+# 
+# # check if the variables can be combined
+# xcor <- polychoric(covidy[ ,stressful_events])$rho
+# VSS.scree(xcor)
+# eigen(xcor)$values[1]/eigen(xcor)$values[2]
+# 
+# covidy$strle_tot_bar = rowSums(covidy[,stressful_events])
 
 
 

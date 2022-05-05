@@ -70,7 +70,7 @@ child_worry$child_worried_about_cv_mean = rowMeans(child_worry[,grep("child", co
 #### family diagnosed with coronavirus
 family_diagnosed = covidp_wide[,grepl("src|fam_d", colnames(covidp_wide))]
 #remove kids with no data
-family_diagnosed = family_diagnosed[rowSums(is.na(family_diagnosed)) != 5 ,]
+family_diagnosed = family_diagnosed[rowSums(is.na(family_diagnosed)) != 7 ,]
 family_diagnosed$fam_tested_pos_cv = ifelse(rowSums(family_diagnosed[,grep("fam", colnames(family_diagnosed))], na.rm = T) > 0, 1,0)
 
 #### school
@@ -78,20 +78,18 @@ school = covidp_wide[,grepl("src|school", colnames(covidp_wide))]
 school[school == 3] = NA
 school$school_close_spring_2020_cv = school$school_close_cv_cv1 -1
 school$school_close_fall_2020_cv = (school$school_at_home_cv_cv4 | school$school_at_home_cv_cv5)*1
-
 school$went_to_school_cv = rowMeans(school[,grep("went", colnames(school))], na.rm = T) -1
+
+# school close 
+school_close_names = grep("_close_cv_cv[1-3]", colnames(school), value = T)
+school[,school_close_names] = school[,school_close_names] - 1
+school$school_close_ever_1_3 = Reduce("|", school[,school_close_names] )*1
+
 
 #### work ability
 work_ability = covidp_wide[,grepl("src|work", colnames(covidp_wide))]
 work_ability$work_ability_cv_mean = rowMeans(work_ability[,grep("work", colnames(work_ability))], na.rm = T)
 
-###### racism
-racism = covidp_wide[,grepl("src|rac", colnames(covidp_wide))]
-racism$fam_exp_racism_cv_mean = rowMeans(racism[,grep("rac", colnames(racism))], na.rm = T)
-
-#### child enjoy/fear
-enjoy_fear = covidp_wide[,grepl("src|child_enjoy|child_fear", colnames(covidp_wide))]
-enjoy_fear$child_enj_fear_mean_cv = rowMeans(enjoy_fear[,-grep("src", colnames(enjoy_fear))], na.rm = T)
 
 
 covidp_final = merge(interview_age,fam_actions_wide, all = T)
@@ -103,10 +101,9 @@ covidp_final = merge(covidp_final,child_worry, all = T)
 covidp_final = merge(covidp_final,family_diagnosed, all = T)
 covidp_final = merge(covidp_final,school, all = T)
 covidp_final = merge(covidp_final,work_ability, all = T)
-covidp_final = merge(covidp_final,racism, all = T)
-covidp_final = merge(covidp_final,enjoy_fear, all = T)
+
 
 # keep fam_wage_loss_cv_cv1 
-covidp_final = covidp_final[,grep("src|age_mean_cv|timepoint|fam_wage_loss_cv_cv1|cv$|cv_mean$|enj_fear", colnames(covidp_final) )]
+covidp_final = covidp_final[,grep("src|age_mean_cv|timepoint|fam_wage_loss_cv_cv1|cv$|cv_mean$|_ever_1_3$", colnames(covidp_final) )]
 
 write.csv(covidp_final, "outputs/covidp_final.csv", row.names=F, na = "")

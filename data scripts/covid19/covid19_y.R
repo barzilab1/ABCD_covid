@@ -37,8 +37,7 @@ sadness_scale_wide = reshape(sadness_scale, direction = "wide", idvar = "src_sub
 
 # include kids with at least 2 time points
 # sadness_scale_wide = sadness_scale_wide[rowSums(!is.na(sadness_scale_wide)) > 20,]
-
-write.csv(file = "outputs/sadness_scale_wide.csv",x = sadness_scale_wide ,row.names=F, na = "")
+# write.csv(file = "outputs/sadness_scale_wide.csv",x = sadness_scale_wide ,row.names=F, na = "")
 
 ###### 2. Substance
 substance = covidy[,grep("src_|_age|timepoint|su_(a|l|m)", colnames(covidy))]
@@ -50,18 +49,10 @@ substance = substance[rowSums(is.na(substance)) == 0,]
 
 # convert to binary feature 
 substance$su_alcohol_binary = ifelse(substance$su_alcohol_cv > 1, 1, 0)
-substance$su_alcohol_binary[is.na(substance$su_alcohol_cv)] = NA
-
 substance$su_liquids_binary = ifelse(substance$su_liquids_cv > 1, 1, 0)
-substance$su_liquids_binary[is.na(substance$su_liquids_cv)] = NA
-
 substance$su_medication_binary = ifelse(substance$su_medication_cv > 1, 1, 0)
-substance$su_medication_binary[is.na(substance$su_medication_cv)] = NA
-
 substance$su_meth_binary = ifelse(substance$su_meth_cv > 1, 1, 0)
-substance$su_meth_binary[is.na(substance$su_meth_cv )] = NA
 
-substance$su_other_cv = substance$su_liquids_binary + substance$su_medication_binary + substance$su_meth_binary
 
 # check if the variables can be combined
 xcor <- polychoric(substance[ ,grep("binary|mj", colnames(substance), value = T) ])$rho
@@ -73,9 +64,8 @@ substance$su_total_cv = rowSums(substance[ ,grep("binary|mj", colnames(substance
 substance_wide = reshape(substance, direction = "wide", idvar = "src_subject_id", timevar = "timepoint", sep = "_")
 
 # include kids with at least 3 time points
-substance_wide = substance_wide[(rowSums(!is.na(substance_wide)) > 33),]
-
-write.csv(file = "outputs/substance_wide.csv",x = substance_wide ,row.names=F, na = "")
+# substance_wide = substance_wide[(rowSums(!is.na(substance_wide)) > 33),]
+# write.csv(file = "outputs/substance_wide.csv",x = substance_wide ,row.names=F, na = "")
 
 
 ###### 3. Perceived Stress Scale
@@ -87,9 +77,8 @@ perceived_stress = perceived_stress[rowSums(is.na(perceived_stress)) == 0,]
 perceived_stress_wide = reshape(perceived_stress, direction = "wide", idvar = "src_subject_id", timevar = "timepoint", sep = "_")
 
 # include kids with at least 3 time points
-perceived_stress_wide = perceived_stress_wide[(rowSums(!is.na(perceived_stress_wide)) > 18),]
-
-write.csv(file = "outputs/perceived_stress_wide.csv",x = perceived_stress_wide ,row.names=F, na = "")
+# perceived_stress_wide = perceived_stress_wide[(rowSums(!is.na(perceived_stress_wide)) > 18),]
+# write.csv(file = "outputs/perceived_stress_wide.csv",x = perceived_stress_wide ,row.names=F, na = "")
 
 
 ###### 4. Mental health
@@ -99,9 +88,8 @@ mental_health = mental_health[rowSums(is.na(mental_health))  == 0,]
 mental_health_wide = reshape(mental_health, direction = "wide", idvar = "src_subject_id", timevar = "timepoint", sep = "_")
 
 # include kids with at least 2 time points
-mental_health_wide = mental_health_wide[(rowSums(!is.na(mental_health_wide)) > 4),]
-
-write.csv(file = "outputs/mental_health_wide.csv",x = mental_health_wide ,row.names=F, na = "")
+# mental_health_wide = mental_health_wide[(rowSums(!is.na(mental_health_wide)) > 4),]
+# write.csv(file = "outputs/mental_health_wide.csv",x = mental_health_wide ,row.names=F, na = "")
 
 
 
@@ -132,9 +120,6 @@ mental_health_wide$mental_health_cv_mean = rowMeans(mental_health_wide[,grep("me
 money = exposures_wide[,grep("src_|money", colnames(exposures_wide))]
 money$money_cv_mean = rowMeans(money[,grep("money", colnames(money))], na.rm = T)
 
-###### outdoor_act
-outdoor_act = exposures_wide[,grep("src_|outdoor_act", colnames(exposures_wide))]
-outdoor_act$outdoor_act_cv_mean = rowMeans(outdoor_act[,grep("outdoor_act", colnames(outdoor_act))], na.rm = T)
 
 ###### parents monitor
 parents_monitor = exposures[,grep("src_|timepoint|parent_monitor", colnames(exposures))]
@@ -163,18 +148,18 @@ screentime = screentime[,-grep("typical", colnames(screentime))]
 screentime$screentime_wknd_hr_cv_mean = rowMeans(screentime[,grep("screentime", colnames(screentime))], na.rm = T)
 
 ###### stressful life event 
-stressful_events = exposures[,grep("src_|timepoint|strle", colnames(exposures))]
-stressful_events = stressful_events[(rowSums(!is.na(stressful_events)) > 9),]
-
-# check if the variables can be combined
-xcor <- polychoric(stressful_events[ ,grep("strle", colnames(stressful_events), value = T) ])$rho
-VSS.scree(xcor)
-eigen(xcor)$values[1]/eigen(xcor)$values[2]
-
-stressful_events$strle_tot_bar = rowSums(stressful_events[,grep("strle", colnames(stressful_events))])
-stressful_events_wide = reshape(stressful_events, direction = "wide", idvar = "src_subject_id", timevar = "timepoint", sep = "_")
-stressful_events_wide = stressful_events_wide[,grep("src_|tot_bar", colnames(stressful_events_wide))]
-stressful_events_wide$strle_tot_bar_max = apply(stressful_events_wide[,grep("bar", colnames(stressful_events_wide))], 1, max, na.rm = T)
+# stressful_events = exposures[,grep("src_|timepoint|strle", colnames(exposures))]
+# stressful_events = stressful_events[(rowSums(!is.na(stressful_events)) > 9),]
+# 
+# # check if the variables can be combined
+# xcor <- polychoric(stressful_events[ ,grep("strle", colnames(stressful_events), value = T) ])$rho
+# VSS.scree(xcor)
+# eigen(xcor)$values[1]/eigen(xcor)$values[2]
+# 
+# stressful_events$strle_tot_bar = rowSums(stressful_events[,grep("strle", colnames(stressful_events))])
+# stressful_events_wide = reshape(stressful_events, direction = "wide", idvar = "src_subject_id", timevar = "timepoint", sep = "_")
+# stressful_events_wide = stressful_events_wide[,grep("src_|tot_bar", colnames(stressful_events_wide))]
+# stressful_events_wide$strle_tot_bar_max = apply(stressful_events_wide[,grep("bar", colnames(stressful_events_wide))], 1, max, na.rm = T)
 
 
 ###### Substance - cont'
@@ -184,11 +169,6 @@ substance_wide$su_alcohol_binary_mean = rowMeans(substance_wide[,grep("alcohol",
 substance_wide$su_total_cv_mean = rowMeans(substance_wide[,grep("total", colnames(substance_wide))], na.rm = T)
 substance_wide$su_other_cv_mean = rowMeans(substance_wide[,grep("other", colnames(substance_wide))], na.rm = T)
 
-###### racism
-racism = exposures_wide[,grep("src_|_rac_", colnames(exposures_wide))]
-racism$exp_rac_disc_cv_max = apply(racism[,grep("exp", colnames(racism))], 1, max, na.rm = T)
-racism$witness_rac_disc_cv_max = apply(racism[,grep("witness", colnames(racism))], 1, max, na.rm = T)
-racism[racism == -Inf] = NA
 
 ###### worry
 worry = exposures_wide[,grep("src_|worr", colnames(exposures_wide))]
@@ -197,19 +177,18 @@ worry$worried_cv = worry$worried_cv_cv2
 
 
 covidy_final = merge(sadness_scale_wide, mental_health_wide, all = T)
-
 covidy_final = merge(bedtime,exercise, all = T)
 covidy_final = merge(covidy_final,sadness_scale_wide, all = T)
 covidy_final = merge(covidy_final,mental_health_wide, all = T)
 covidy_final = merge(covidy_final,money, all = T)
-covidy_final = merge(covidy_final,outdoor_act, all = T)
+# covidy_final = merge(covidy_final,outdoor_act, all = T)
 covidy_final = merge(covidy_final,parents_monitor_wide, all = T)
 covidy_final = merge(covidy_final,perceived_stress_wide, all = T)
 covidy_final = merge(covidy_final,routine, all = T)
 covidy_final = merge(covidy_final,screentime, all = T)
-covidy_final = merge(covidy_final,stressful_events_wide, all = T)
+# covidy_final = merge(covidy_final,stressful_events_wide, all = T)
 covidy_final = merge(covidy_final,substance_wide, all = T)
-covidy_final = merge(covidy_final,racism, all = T)
+# covidy_final = merge(covidy_final,racism, all = T)
 covidy_final = merge(covidy_final,worry, all = T)
 
 covidy_final = covidy_final[,grepl("src|mean|max|worried_cv$|money_cv_cv1", colnames(covidy_final))]
@@ -218,24 +197,4 @@ covidy_final = covidy_final[!rowSums(is.na(covidy_final)) > 14,]
 
 write.csv(covidy_final, "outputs/covidy_final.csv", row.names=F, na = "")
 
-
-
-
-# covidy_long = merge(sadness_scale, substance, all = T)
-# covidy_long = merge(covidy_long, perceived_stress, all = T)
-# covidy_long = merge(covidy_long, mental_health, all = T)
-# covidy_long = merge(covidy_long, exposures, all = T)
-# covidy_long = merge(covidy_long, parents_monitor, all = T)
-# covidy_long = merge(covidy_long, stressful_events, all = T)
-# write.csv(covidy_long, "outputs/covidy_long.csv", row.names=F, na = "")
-
-####################################
-###### positive affect scale
-####################################
-# positive_affect_scale = covidy[,grep("^(src_|_age|timepoint|attentive|calm|con|deli|ease|en(e|t)|intere|nih_posaff)", colnames(covidy))]
-# positive_affect_scale$nih_posaff_cv_raw_tot[positive_affect_scale$nih_posaff_cv_raw_tot >45 ] = NA
-# positive_affect_scale = positive_affect_scale[rowSums(is.na(positive_affect_scale)) != 10,]
-# positive_affect_scale_wide = reshape(positive_affect_scale, direction = "wide", idvar = "src_subject_id", timevar = "timepoint", sep = "_")
-# 
-# write.csv(positive_affect_scale_wide, "outputs/covidy_positive_affect_scale.csv", row.names=F, na = "")
 
