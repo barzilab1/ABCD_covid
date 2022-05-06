@@ -43,16 +43,16 @@ colnames(p_factor_with_sui)[1:7] <- paste0(colnames(p_factor_with_sui)[1:7], "_w
 
 
 # IVs <- merge(demographics_long, exposome_sum_set, all = T)
-IVs <- IVs[(IVs$eventname == "1_year_follow_up_y_arm_1"),]
+demographics_long <- demographics_long[(demographics_long$eventname == "1_year_follow_up_y_arm_1"),]
 
-colnames(IVs)[2] <- "interview_date_before_covid"
-colnames(IVs)[3] <- "interview_age_before_covid"
-IVs$eventname <- NULL
+colnames(demographics_long)[2] <- "interview_date_before_covid"
+colnames(demographics_long)[3] <- "interview_age_before_covid"
+demographics_long$eventname <- NULL
 
 
 covid_long_mixed_model <- merge(covidp_long, covidy_long, all = T)
 covid_long_mixed_model <- merge(covid_long_mixed_model, family_, all.x = T)
-covid_long_mixed_model <- merge(covid_long_mixed_model, IVs)
+covid_long_mixed_model <- merge(covid_long_mixed_model, demographics_long)
 
 covid_long_mixed_model <- covid_long_mixed_model %>%
   dplyr::mutate(timepoint = sub("cv", "" , timepoint)) %>%
@@ -64,9 +64,10 @@ covid_wide <- covid_long_mixed_model %>%
     .,
     names_from = timepoint,
     values_from = c(
+      interview_age,
       fam_exp_racism_cv:pstr_cv_raw_tot_bar.1,
-      ends_with("_l"),
-      stq_y_ss_weekday:dim_y_ss_mean
+      ends_with("_l")
+      # stq_y_ss_weekday:dim_y_ss_mean
     ),
     names_sep = "_"
   )
@@ -105,7 +106,7 @@ covid_wide <- covid_wide %>%
         "parent_monitor_tot_bar",
         "felt_sad_cv_raw_tot_bar",
         "money_cv",
-        "dim_y_ss",
+        # "dim_y_ss",
         "mean",
         "interview_age",
         "worry_y"
@@ -169,19 +170,19 @@ covid_wide <- covid_wide %>%
     ## worries about money T3, T4, T5
     money_cv_mean3to6 = mean(c(money_cv_3, money_cv_4, money_cv_5, money_cv_6), na.rm = TRUE),
   
-    ## Discrimination mean 7 time points
-    dim_y_ss_mean = mean(
-      c(
-        dim_y_ss_mean_1,
-        dim_y_ss_mean_2,
-        dim_y_ss_mean_3,
-        dim_y_ss_mean_4,
-        dim_y_ss_mean_5,
-        dim_y_ss_mean_6,
-        dim_y_ss_mean_7
-      ),
-      na.rm = TRUE
-    ),
+    # ## Discrimination mean 7 time points
+    # dim_y_ss_mean = mean(
+    #   c(
+    #     dim_y_ss_mean_1,
+    #     dim_y_ss_mean_2,
+    #     dim_y_ss_mean_3,
+    #     dim_y_ss_mean_4,
+    #     dim_y_ss_mean_5,
+    #     dim_y_ss_mean_6,
+    #     dim_y_ss_mean_7
+    #   ),
+    #   na.rm = TRUE
+    # ),
     
     ## Age at interview mean
     age_mean_cv = mean(
