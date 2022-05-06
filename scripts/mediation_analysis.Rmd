@@ -34,7 +34,7 @@ family_ <- read.csv("../outputs/family.csv") %>%
   dplyr::select(-eventname)
 demo_baseline <- read.csv("../outputs/demographics_baseline.csv")
 demographics_long <- read.csv("../outputs/demographics_long.csv")
-exposome_sum_set <- read.csv("../outputs/exposome_sum_set.csv")
+# exposome_sum_set <- read.csv("../outputs/exposome_sum_set.csv")
 p_factor_with_sui <- read_csv(paste0(p_factor_files_path, "ABCD_psychopathology_bifactor_scores_23March2021_WITH_SUICIDALITY.csv"))
 
 p_factor_with_sui$src_subject_id <- paste0("NDAR_", p_factor_with_sui$ID)
@@ -42,7 +42,7 @@ p_factor_with_sui$ID <- NULL
 colnames(p_factor_with_sui)[1:7] <- paste0(colnames(p_factor_with_sui)[1:7], "_with_sui")
 
 
-IVs <- merge(demographics_long, exposome_sum_set, all = T)
+# IVs <- merge(demographics_long, exposome_sum_set, all = T)
 IVs <- IVs[(IVs$eventname == "1_year_follow_up_y_arm_1"),]
 
 colnames(IVs)[2] <- "interview_date_before_covid"
