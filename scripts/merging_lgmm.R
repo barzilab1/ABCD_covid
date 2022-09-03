@@ -5,7 +5,7 @@ demographics_baseline <- read.csv("outputs/demographics_baseline.csv")
 demographics_long <- read.csv("outputs/demographics_long.csv")
 family <- read.csv("outputs/family.csv")
 site <- read.csv("outputs/site.csv")
-geo_data <- read.csv("outputs/geo_data.csv")
+# geo_data <- read.csv("outputs/geo_data.csv")
 
 mental_health <- read.csv("outputs/mental_health_wide.csv")
 perceived_stress <- read.csv("outputs/perceived_stress_wide.csv")
@@ -18,14 +18,14 @@ covars = merge(site[site$eventname == "baseline_year_1_arm_1", c("src_subject_id
 covars = merge(covars, demographics_baseline[,grep("src_|race|hisp|born|year", colnames(demographics_baseline))])
 
 ### take the most updated geo
-geo_data$timepoint = regmatches(geo_data$eventname, regexpr("(.*)_year", geo_data$eventname))
-geo_data = geo_data[,c("src_subject_id","timepoint","reshist_addr1_adi_perc")]
-geo_data_w = reshape(geo_data, direction = "wide", idvar = "src_subject_id", timevar = "timepoint", sep = "_")
-geo_data_w$reshist_addr1_adi_perc_bar = ifelse(!(is.na(geo_data_w$reshist_addr1_adi_perc_2_year)), geo_data_w$reshist_addr1_adi_perc_2_year,
-                                        ifelse(!(is.na(geo_data_w$reshist_addr1_adi_perc_1_year)), geo_data_w$reshist_addr1_adi_perc_1_year,
-                                               geo_data_w$reshist_addr1_adi_perc_baseline_year ))
-
-covars = merge(covars,geo_data_w[,c("src_subject_id", "reshist_addr1_adi_perc_bar")])
+# geo_data$timepoint = regmatches(geo_data$eventname, regexpr("(.*)_year", geo_data$eventname))
+# geo_data = geo_data[,c("src_subject_id","timepoint","reshist_addr1_adi_perc")]
+# geo_data_w = reshape(geo_data, direction = "wide", idvar = "src_subject_id", timevar = "timepoint", sep = "_")
+# geo_data_w$reshist_addr1_adi_perc_bar = ifelse(!(is.na(geo_data_w$reshist_addr1_adi_perc_2_year)), geo_data_w$reshist_addr1_adi_perc_2_year,
+#                                         ifelse(!(is.na(geo_data_w$reshist_addr1_adi_perc_1_year)), geo_data_w$reshist_addr1_adi_perc_1_year,
+#                                                geo_data_w$reshist_addr1_adi_perc_baseline_year ))
+# 
+# covars = merge(covars,geo_data_w[,c("src_subject_id", "reshist_addr1_adi_perc_bar")])
 
 ### get demographics 2 year follow up -> 1 year follow up -> baseline 
 ids = union(mental_health$src_subject_id, perceived_stress$src_subject_id)
