@@ -16,7 +16,7 @@ covidp[covidp == 777 | covidp == 999] = NA
 covidp$timepoint = regmatches(covidp$eventnam, regexpr("cv[1-7]", covidp$eventnam))
 
 
-covidp = covidp[,grep("src|timepoint|^fam_(a|w|dia|exp([1-7]|_rac))|increased_conflict|^child_(sep|tested|worried)|(to_|.?)school_(at|close_cv|cv)|work_ability|interview_age|child_enjoy|child_fear", colnames(covidp), value = T)]
+covidp = covidp[,grep("src|timepoint|^fam_(a|w|dia|ht|exp([1-7]|_rac))|increased_conflict|^child_(sep|tested|worried)|(to_|.?)school_(at|close_cv|cv)|work_ability|interview_age|child_enjoy|child_fear", colnames(covidp), value = T)]
 covidp_wide = reshape(covidp, direction = "wide", idvar = "src_subject_id", timevar = "timepoint", sep = "_")
 
 #### interview age
