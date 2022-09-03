@@ -15,7 +15,7 @@ covidp[covidp == 777 | covidp == 999] = NA
 # new variable to use in reshape from long to wide format
 covidp$timepoint = regmatches(covidp$eventname, regexpr("cv[1-7]", covidp$eventname))
 
-covidp = covidp[,grep("src|timepoint|^fam_(a|w|dia|ht|exp([1-7]|_rac))|increased_conflict|^child_(sep|tested|worried)|(to_|.?)school_(at|close_cv|cv)|work_ability|eventname|interview_age", colnames(covidp), value = T)]
+covidp = covidp[,grep("src|timepoint|^fam_(a|w|dia|ht|exp([1-7]|_rac))|increased_conflict|^child_(sep|tested|worried)|(to_|.?)school_(at|close_cv|cv)|work_ability|eventname|interview_age|p_enj", colnames(covidp), value = T)]
 
 #### family actions  
 fam_actions_cols = grep("fam_a.*_([1-9]|1[0-3])$", colnames(covidp), value = T)
